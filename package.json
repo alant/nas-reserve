@@ -5,16 +5,20 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "test": "jest"
   },
   "dependencies": {
+    "nebulas": "^0.5.2",
     "vue": "^2.5.16",
-    "vuetify": "^1.0.19"
+    "vuetify": "^1.0.19",
+    "yargs": "^11.0.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.0.0-beta.15",
     "@vue/cli-plugin-eslint": "^3.0.0-beta.15",
     "@vue/cli-service": "^3.0.0-beta.15",
+    "jest": "^23.1.0",
     "vue-cli-plugin-vuetify": "^0.1.4",
     "vue-template-compiler": "^2.5.16"
   },
