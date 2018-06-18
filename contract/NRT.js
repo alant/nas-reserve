@@ -8,12 +8,14 @@ var GlobalConfig = function(text) {
     this.initial_price = obj.initial_price;
     this.current_price = obj.current_price;
     this.balance = obj.balance;
+    this.orderSeq = obj.orderSeq;
   } else {
-    this.chairman = null;
+    this.chairman = "";
     this.inflation_rate = new BigNumber(1.05);
     this.initial_price = new BigNumber(0.025 * 10 ** 18);
     this.current_price = new BigNumber(0.025 * 10 ** 18);
     this.balance = new BigNumber(0);
+    this.orderSeq = 0;
   }
 };
 
@@ -43,6 +45,31 @@ ShareHolder.prototype = {
 var Allowed = function(obj) {
   this.allowed = {};
   this.parse(obj);
+};
+
+var Order = function(text) {
+  if (text) {
+    var obj = JSON.parse(text);
+    this.id = obj.id;
+    this.type = obj.type; //  1 is buy; 2 is sell
+    this.price = obj.price;
+    this.maker = obj.maker;
+    this.taker = obj.taker;
+    this.status = obj.status; // 0 is live, 1 is done, 2 is canceled
+  } else {
+    this.id = "";
+    this.type = "";
+    this.price = new BigNumber(0);
+    this.maker = "";
+    this.taker = ""
+    this.status = "";
+  }
+};
+
+Order.prototype = {
+  toString: function() {
+    return JSON.stringify(this);
+  }
 };
 
 Allowed.prototype = {
@@ -96,6 +123,22 @@ var NRTContract = function() {
       stringify: function(o) {
         return JSON.stringify(o);
       }
+    },
+    _buyOrderIds: {
+      parse: function(value) {
+        return JSON.parse(value);
+      },
+      stringify: function(o) {
+        return JSON.stringify(o);
+      }
+    },
+    _sellOrderIds: {
+      parse: function(value) {
+        return JSON.parse(value);
+      },
+      stringify: function(o) {
+        return JSON.stringify(o);
+      }
     }
   });
 
@@ -123,6 +166,14 @@ var NRTContract = function() {
       stringify: function(o) {
         return o.toString();
       }
+    },
+    orders: {
+      parse: function(value) {
+        return new Order(value);
+      },
+      stringify: function(o) {
+        return o.toString();
+      }
     }
   });
 };
@@ -130,7 +181,7 @@ var NRTContract = function() {
 NRTContract.prototype = {
   init: function() {
     var from = Blockchain.transaction.from;
-    
+
     this._name = "Nas Reserve Token";
     this._symbol = "NRT";
     this._decimals = 0;
@@ -138,6 +189,10 @@ NRTContract.prototype = {
     var allShareHolders = [];
     allShareHolders.push(from);
     this._allShareHolders = allShareHolders;
+    var buyOrderIds = [];
+    this._buyOrderIds = buyOrderIds;
+    var sellOrderIds = [];
+    this._sellOrderIds = sellOrderIds;
 
     this.balances.set(from, this._totalSupply);
     this.transferEvent(true, from, from, this._totalSupply);
@@ -175,9 +230,55 @@ NRTContract.prototype = {
     var allShareHolders = this._allShareHolders;
     allShareHolders.push(from);
     this._allShareHolders = allShareHolders;
-    
+
     this.balances.set(from, 1);
     this.transferEvent(true, this._config.chairman, from, 1);
+  },
+
+  // newOrder: function(_type, _price) {
+  //   var config = this.getConfig();
+  //   var order = new Order();
+
+
+  // }
+
+  getShareHolderDetail: function(address) {
+    var from = Blockchain.transaction.from;
+    var config = this.getConfig();
+    if (from !== config.chairman) {
+      throw new Error("Only chairman can see shareHolder's detail");
+    }
+
+    const result = this.shareHolders.get(address);
+    return result;
+  },
+
+  setShareHolderDetail: function(_name, _contact) {
+    var from = Blockchain.transaction.from;
+    var allShareHolders = this._allShareHolders;
+    if (allShareHolders.indexOf(from) < 0) {
+      throw new Error(
+        "You need to own a NRT share before registering. Buy it from this smart contract or from someone on the exchange"
+      );
+    }
+    var shareHolder = this.shareHolders.get(from);
+    if (!shareHolder) {
+      shareHolder = new ShareHolder();
+    }
+    shareHolder.name = _name;
+    shareHolder.contact = _contact;
+    this.shareHolders.put(from, shareHolder);
+  },
+
+  setNewChairman: function(address) {
+    var from = Blockchain.transaction.from;
+    var config = this.getConfig();
+    if (from !== config.chairman) {
+      throw new Error("Only chairman can set new chairman!");
+    }
+
+    config.chairman = address;
+    this._config = config;
   },
 
   getAllShareHolders: function() {
