@@ -53,6 +53,7 @@ var Order = function(text) {
     this.id = obj.id;
     this.type = obj.type; //  1 is buy; 2 is sell
     this.price = obj.price;
+    this.balance = obj.balance;
     this.maker = obj.maker;
     this.taker = obj.taker;
     this.status = obj.status; // 0 is live, 1 is done, 2 is canceled
@@ -60,8 +61,9 @@ var Order = function(text) {
     this.id = "";
     this.type = "";
     this.price = new BigNumber(0);
+    this.balance = new BigNumber(0);
     this.maker = "";
-    this.taker = ""
+    this.taker = "";
     this.status = "";
   }
 };
@@ -174,6 +176,14 @@ var NRTContract = function() {
       stringify: function(o) {
         return o.toString();
       }
+    },
+    myOrders: {
+      parse: function(value) {
+        return JSON.parse(value);
+      },
+      stringify: function(o) {
+        return o.toString();
+      }
     }
   });
 };
@@ -202,9 +212,14 @@ NRTContract.prototype = {
     this._config = config;
   },
 
-  buyOneShare: function(height) {
+  buyOneShare: function() {
     var _value = new BigNumber(Blockchain.transaction.value);
     var from = Blockchain.transaction.from;
+    var allShareHolders = this._allShareHolders;
+
+    if (allShareHolders.indexOf(from) >= 0) {
+      throw new Error("You're already a shareholder.");
+    }
     if (_value.lt(this._config.current_price)) {
       throw new Error(
         "Price paid too low. " +
@@ -235,13 +250,65 @@ NRTContract.prototype = {
     this.transferEvent(true, this._config.chairman, from, 1);
   },
 
-  // newOrder: function(_type, _price) {
-  //   var config = this.getConfig();
-  //   var order = new Order();
+  newOrder: function(_type, _price) {
+    var config = this.getConfig();
+    var order = new Order();
+    order.id = config.orderSeq;
+    config.orderSeq += 1;
+    order.type = _type;
+    order.price = new BigNumber(_price);
 
+    var from = Blockchain.transaction.from;
+    order.maker = from;
+    order.status = 0;
 
-  // }
+    if (_type === "buy") {
+      var _value = new BigNumber(Blockchain.transaction.value);
+      if (_value.lt(new BigNumber(_price))) {
+        throw new Error(
+          "You must deposit the number of NAS as the price you said you will pay"
+        );
+      }
+      
+      order.balance.plus(_value);
 
+      var buyIds = this._buyOrderIds;
+      buyIds.push(order.id);
+      this._buyOrderIds = buyIds;
+    } else if (_type === "sell") {
+      var allShareHolders = this._allShareHolders;
+      if (allShareHolders.indexOf(from) < 0) {
+        throw new Error(
+          "You need to own a NRT share before selling. Buy it from this smart contract or from someone on the exchange"
+        );
+      }
+      
+      this.balances.set(from, 0);
+      
+      var sellIds = this._sellOrderIds;
+      sellIds.push(order.id);
+      this._sellOrderIds = sellIds;
+    } else {
+      throw new Error("Order type error. Must be buy or sell");
+    }
+
+    this._config = config;
+    this.orders.set(order.id, order);
+
+    var _myOrders = this.myOrders.get(from) || [];
+    _myOrders.push(order.id);
+    this.myOrders.set(from, _myOrders);
+  },
+  getBuyOrderIds: function() {
+    return this._buyOrderIds;
+  },
+  getSellOrderIds: function() {
+    return this._sellOrderIds;
+  },
+  getOrderSeq: function() {
+    var config = this.getConfig();
+    return config.orderSeq;
+  },
   getShareHolderDetail: function(address) {
     var from = Blockchain.transaction.from;
     var config = this.getConfig();
