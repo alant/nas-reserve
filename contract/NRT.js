@@ -1,5 +1,47 @@
 "use strict";
 
+var GlobalConfig = function(text) {
+  if (text) {
+    var obj = JSON.parse(text);
+    this.chairman = obj.chairman;
+    this.share_holders = obj.share_holders;
+    this.inflation_rate = obj.inflation_rate;
+    this.initial_price = obj.initial_price;
+    this.current_price = obj.current_price;
+    this.balance = obj.balance;
+  } else {
+    this.chairman = null;
+    this.share_holders = [];
+    this.inflation_rate = new BigNumber(1.05);
+    this.initial_price = new BigNumber(0.025 * 10 ** 18);
+    this.current_price = new BigNumber(0.025 * 10 ** 18);
+    this.balance = new BigNumber(0);
+  }
+};
+
+GlobalConfig.prototype = {
+  toString: function () {
+    return JSON.stringify(this);
+  }
+};
+
+var ShareHolder = function(text) {
+  if (text) {
+    var obj = JSON.parse(text);
+    this.name = obj.name;
+    this.contact = obj.contact;
+  } else {
+    this.name = "";
+    this.contact = "";
+  }
+};
+
+ShareHolder.prototype = {
+  toString: function () {
+    return JSON.stringify(this);
+  }
+};
+
 var Allowed = function(obj) {
   this.allowed = {};
   this.parse(obj);
@@ -40,6 +82,14 @@ var NRTContract = function() {
       stringify: function(o) {
         return o.toString(10);
       }
+    },
+    _config: {
+      parse: function(text) {
+        return new GlobalConfig(text);
+      },
+      stringify: function(o) {
+        return o.toString();
+      }
     }
   });
 
@@ -59,6 +109,14 @@ var NRTContract = function() {
       stringify: function(o) {
         return o.toString();
       }
+    },
+    shareHolders: {
+      parse: function(value) {
+        return new ShareHolder(value);
+      },
+      stringify: function(o) {
+        return o.toString();
+      }
     }
   });
 };
@@ -73,6 +131,52 @@ NRTContract.prototype = {
     var from = Blockchain.transaction.from;
     this.balances.set(from, this._totalSupply);
     this.transferEvent(true, from, from, this._totalSupply);
+
+    var config = new GlobalConfig(null);
+    config.chairman = from;
+    config.share_holders.push(from);
+    this._config = config;
+  },
+
+  buyOneShare: function(height) {
+    var _value = new BigNumber(Blockchain.transaction.value);
+    var from = Blockchain.transaction.from;
+    if (_value.lt(this._config.current_price)) {
+      throw new Error(
+        "Price paid too low. " +
+          "Paid: " +
+          _value +
+          "; Current Price: " +
+          this._config.current_price
+      );
+    }
+
+    var config = this.getConfig();
+    var price = new BigNumber(config.current_price);
+    price = price.mul(config.inflation_rate);
+    config.current_price = price;
+    this._config = config;
+    // var _balance = new BigNumber(this._config.balance);
+    // _balance = _balance.plus(_value);
+    // this._config.balance = _balance;
+
+    // this._config.share_holders.push(from);
+
+    // var _price = new BigNumber(this._config.current_price);
+    // _price = _price.mul(new BigNumber(this._config.inflation_rate));
+    // this._config.current_price = _price;
+      
+    this.balances.set(from, 1);
+    this.transferEvent(true, this._config.chairman, from, 1);
+  },
+
+  getCurrentPrice: function() {
+    const result = this.getConfig().current_price;
+    return result;
+  },
+
+  getConfig: function() {
+    return this._config;
   },
 
   // Returns the name of the token

@@ -4,65 +4,52 @@ var FS = require("fs");
 var BigNumber = require("bignumber.js");
 var path = require("path");
 
-var Account = Wallet.Account;
 var Transaction = Wallet.Transaction;
+var Unit = Wallet.Unit;
 
-var testAccount = new Wallet.Account(
-  new Buffer(
-    "a4a678f09c08affa569933252425da52d3df2082c87ed8c7b5f4b3788207350e",
-    "hex"
-  )
-);
-var contractType = "js";
-var contractFile = "/../contract/NRT.js";
 var globalConfig = {
-  env: "testnet",
+  //change to true when changing contract
   redploy: false,
+  env: "testnet",
   configFile: path.join(__dirname, "test_config.json"),
   maxCheckTime: 10
 };
+
+var contractFile = "/../contract/NRT.js";
+
+//has about 9nas test token however, not able to import to webwallet. Abandon for now
+// var testAccount = new Wallet.Account(
+//   "a4a678f09c08affa569933252425da52d3df2082c87ed8c7b5f4b3788207350e"
+// );
+//nas test1 n1bZ6riZspfRmBLrURfHHb34mxHJKtdeepX
+var testAccount1 = new Wallet.Account(
+  "97eb9720c1ff26a154f7dd2040bcbda5e005ce4f1675296bfa1f36c9451c0b96"
+);
+//nas test2 n1TT1VCv7RGPzdgjby9B7Lh2bZPX1PoVetD
+var testAccount2 = new Wallet.Account(
+  "2b779296ab0ee991a73ecc61319afff8352d171b0a8778ef623911f65d7bf5b4"
+);
+
+var contractType = "js";
+
 var contractAddr;
 var contractTxhash;
 
 var ChainID;
-var sourceAccount;
-var coinbase;
-var from;
 var neb = new Wallet.Neb();
 
 if (globalConfig.env === "testnet") {
   console.log("=== testnet config ===");
   ChainID = 1001;
   neb.setRequest(new HttpRequest("https://testnet.nebulas.io"));
-  sourceAccount = new Wallet.Account(
-    "43181d58178263837a9a6b08f06379a348a5b362bfab3631ac78d2ac771c5df3"
-  );
-  coinbase = "n1QZMXSZtW7BUerroSms4axNfyBGyFGkrh5";
 }
 
-function getTestAccount() {
-  console.log("==> getAccount");
-  from = testAccount;
-  console.log("addr:" + from.getAddressString());
-
-  neb.api
-    .getAccountState(from.getAddressString())
-    .then(function(state) {
-      state = state.result || state;
-      console.log("balance" + state.balance);
-      console.log("nonce" + state.nonce);
-    })
-    .catch(function(err) {
-      console.log("err:", err);
-    });
-}
-
-function deployContract(testInput) {
+function deployContract(_from, testInput) {
   console.log("==> deployContract");
   var fromState;
   return new Promise(resolve => {
     neb.api
-      .getAccountState(from.getAddressString())
+      .getAccountState(_from.getAddressString())
       .then(function(state) {
         fromState = state;
         console.log("from state: " + JSON.stringify(fromState));
@@ -80,8 +67,8 @@ function deployContract(testInput) {
         console.log("=== gas limit: " + testInput.gasLimit);
         var tx = new Transaction(
           ChainID,
-          from,
-          from,
+          _from,
+          _from,
           0,
           parseInt(fromState.nonce) + 1,
           1000000,
@@ -94,7 +81,7 @@ function deployContract(testInput) {
           .sendRawTransaction({
             data: rawTx
           })
-          .then(function(resp) {
+          .then(async function(resp) {
             console.log("transacition result: " + JSON.stringify(resp));
             console.log(
               "contract address: " + JSON.stringify(resp.contract_address)
@@ -110,11 +97,13 @@ function deployContract(testInput) {
               globalConfig.configFile,
               JSON.stringify(file, null, 2)
             );
+
+            await tryCheckTx(10, contractTxhash);
             resolve();
           });
       })
       .catch(function(err) {
-        console.log(err.error);
+        console.log(err);
       });
   });
 }
@@ -122,115 +111,155 @@ function deployContract(testInput) {
 function readSavedContractAddr() {
   var fs = require("fs");
   var content = fs.readFileSync(globalConfig.configFile);
-  var data = JSON.parse(content);
-  contractAddr = data.contract_address;
-  contractTxhash = data.txhash;
+  try {
+    var data = JSON.parse(content);
+    contractAddr = data.contract_address;
+    contractTxhash = data.txhash;
+  } catch (e) {
+    console.log("malformed request", content);
+  }
 }
 
-var checkTimes = 0;
-function checkTransaction(hash) {
+function checkTransaction(seq, hash) {
   return new Promise((resolve, reject) => {
-    console.log("==>checkTransaction");
-    if (checkTimes === 0) {
-      beginCheckTime = new Date().getTime();
-    }
-    checkTimes += 1;
-    console.log("jcjc ", checkTimes);
-    if (checkTimes > globalConfig.maxCheckTime) {
-      console.log("check tx receipt timeout: " + hash);
-      checkTimes = 0;
-      reject();
-    }
-
+    console.log("==>checkTransaction #: " + seq);
     neb.api
       .getTransactionReceipt(hash)
       .then(function(resp) {
         // console.log("tx receipt: " + JSON.stringify(resp));
         if (resp.status === 2) {
-          setTimeout(function() {
-            checkTransaction(hash);
-          }, 5000);
+          console.log("transaction not yet confirmed: status = 2 ");
+          resolve(false);
         } else if (resp.status === 0) {
-          console.log("contract deploy failed! error: " + resp.excute_error);
-          reject(resp);
-        } else {
-          checkTimes = 0;
-          var endCheckTime = new Date().getTime();
           console.log(
-            "check tx time: : " + (endCheckTime - beginCheckTime) / 1000
+            "transaction failed! status = 2 error: " + JSON.stringify(resp)
           );
-          resolve(resp);
+          reject(false);
+        } else {
+          // console.log("transaction succeeded: " + JSON.stringify(resp));
+          console.log("transaction succeeded: ");
+          resolve(true);
         }
       })
       .catch(function(err) {
-        console.log(
-          "fail to get tx receipt hash: '" +
-            hash +
-            "' probably being packing, continue checking..."
-        );
-        console.log(err);
-        console.log(err.error);
-        setTimeout(function() {
-          checkTransaction(hash);
-        }, 5000);
+        console.log("getTransactionReceipt error: " + err);
+        reject(false);
       });
   });
 }
-
-
-function callContract(testInput) {
-  console.log("==> test balanceOf");
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+function tryCheckTx(maxTry, hash) {
+  return new Promise(async resolve => {
+    for (var i = 0; i < maxTry; i++) {
+      
+      var result = await checkTransaction(i + 1, hash);
+      if (result) {
+        resolve();
+        break;
+      }
+      await timeout(3000);
+    }
+  });
+}
+async function callContract(_from, testInput) {
+  await neb.api.getAccountState(_from.getAddressString()).then(function(state) {
+    var accountBalance = new BigNumber(state.balance);
+    if (accountBalance.lt(new BigNumber(10 ** 17))) {
+      throw new Error("not enough test nas!");
+    }
+  });
 
   var call = {
     function: testInput.func,
     args: testInput.args
   };
 
-  return new Promise(resolve => {
-    neb.api
-      .getAccountState(contractAddr)
-      .then(function(state) {
-        // console.log("contract state: " + JSON.stringify(state));
-        contractBalanceBefore = new BigNumber(state.balance);
-        return neb.api.getAccountState(from.getAddressString());
-      })
-      .then(function(state) {
-        // console.log("from state: " + JSON.stringify(state));
+  return new Promise((resolve, reject) => {
+    neb.api.getAccountState(contractAddr).then(function(state) {
+      // console.log("from state: " + JSON.stringify(state));
+      neb.api
+        .call(
+          _from.getAddressString(),
+          contractAddr,
+          testInput.value,
+          parseInt(state.nonce) + 1,
+          testInput.gasPrice,
+          testInput.gasLimit,
+          call
+        )
+        .then(async function(resp) {
+          console.log("====> : contractCall returned" + JSON.stringify(resp));
+          // checkTransaction(resp.txhash);
+          resolve(resp);
+        })
+        .catch(function(err) {
+          console.log("tx to contract failed: " + JSON.stringify(err));
+          reject(err);
+        });
+    });
+  });
+}
 
-        neb.api
-          .call(
-            from.getAddressString(),
-            contractAddr,
-            testInput.value,
-            parseInt(state.nonce) + 1,
-            testInput.gasPrice,
-            testInput.gasLimit,
-            call
-          )
-          .then(function(resp) {
-            console.log(
-              "====> : sendRawTransaction returned" + JSON.stringify(resp)
-            );
-            checkTransaction(resp.txhash);
-            resolve(parseInt(JSON.parse(resp.result)));
-          });
+function sendTxToContract(_from, testInput) {
+  var call = {
+    function: testInput.func,
+    args: testInput.args
+  };
+
+  return new Promise((resolve, reject) => {
+    neb.api
+      .getAccountState(_from.getAddressString())
+      .then(function(state) {
+        var accountBalance = new BigNumber(state.balance);
+        if (accountBalance.lt(new BigNumber(10 ** 17))) {
+          throw new Error("not enough test nas!");
+        }
+        console.log("test account state:" + JSON.stringify(state));
+        console.log("sendtx to contract: " + contractAddr);
+        var _value = Unit.nasToBasic(testInput.value);
+        console.log(
+          "sendtx to contract, value: " + _value + " type: " + typeof _value
+        );
+        var _nonce = parseInt(state.nonce) + 1;
+        var tx = new Transaction(
+          ChainID,
+          _from,
+          contractAddr,
+          _value,
+          _nonce,
+          testInput.gasPrice,
+          testInput.gasLimit,
+          call
+        );
+        tx.signTransaction();
+        return neb.api.sendRawTransaction(tx.toProtoString());
+      })
+      .then(async function(resp) {
+        console.log("send tx to contract result:" + JSON.stringify(resp));
+        await tryCheckTx(10, resp.txhash);
+        resolve();
+      })
+      .catch(function(err) {
+        console.log("tx to contract failed: " + JSON.stringify(err));
+        reject(err);
       });
   });
 }
 
-beforeEach(async () => {
-  getTestAccount();
-
+beforeAll(async () => {
+  jest.setTimeout(45000);
   if (globalConfig.redploy) {
     var testInput = {
       contractType: contractType,
       gasLimit: 200000,
       gasPrice: 1000000
     };
-    await deployContract(testInput);
+    await deployContract(testAccount1, testInput);
   } else {
     readSavedContractAddr();
-    await checkTransaction(contractTxhash);
+    await tryCheckTx(10, contractTxhash);
   }
 });
 
@@ -243,8 +272,9 @@ test("testing totalsupply", async () => {
     args: "[]",
     value: 0
   };
-  const totalSupply = await callContract(testInput);
-  expect(parseInt(totalSupply)).toBe(500);
+  const contractReturn = await callContract(testAccount1, testInput);
+  const result = parseInt(JSON.parse(contractReturn.result));
+  expect(result).toBe(500);
 });
 
 
@@ -254,9 +284,48 @@ test("testing blanceOf", async () => {
     gasLimit: 200000,
     gasPrice: 1000000,
     func: "balanceOf",
-    args: JSON.stringify([from.getAddressString()]),
+    args: JSON.stringify([testAccount1.getAddressString()]),
     value: 0
   };
-  const balance = await callContract(testInput);
-  expect(balance).toBe(500);
+  const contractReturn = await callContract(testAccount1, testInput);
+  const result = parseInt(JSON.parse(contractReturn.result));
+  expect(result).toBe(500);
+});
+
+test("testing currentPrice", async () => {
+  jest.setTimeout(15000);
+  var testInput = {
+    gasLimit: 200000,
+    gasPrice: 1000000,
+    func: "getCurrentPrice",
+    args:  "[]",
+    value: 0
+  };
+  const contractReturn = await callContract(testAccount1, testInput);
+  const result = parseInt(JSON.parse(contractReturn.result));
+  // inflation rate is 1.05, raise ** 0 as you go. e.g. 1.05 ** 1 when testing the 2nd time with the same contract etc.
+  expect(result).toBe((1.05 ** 1) * 0.025 * 10 ** 18);
+});
+
+test("testing buy", async () => {
+  jest.setTimeout(30000);
+  var testInput = {
+    gasLimit: 200000,
+    gasPrice: 1000000,
+    func: "buyOneShare",
+    args: JSON.stringify(["0"]),
+    value: 0.025
+  };
+  await sendTxToContract(testAccount2, testInput);
+  var testInput2 = {
+    gasLimit: 200000,
+    gasPrice: 1000000,
+    func: "balanceOf",
+    args: JSON.stringify([testAccount2.getAddressString()]),
+    value: 0
+  };
+  const contractReturn = await callContract(testAccount2, testInput2);
+  const result = parseInt(JSON.parse(contractReturn.result));
+  console.log("after buyOneShare: " + result);
+  expect(result).toBe(1);
 });
