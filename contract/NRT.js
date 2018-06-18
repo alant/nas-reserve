@@ -161,7 +161,7 @@ var NRTContract = function() {
         return o.toString();
       }
     },
-    shareHolders: {
+    shareHoldersDetail: {
       parse: function(value) {
         return new ShareHolder(value);
       },
@@ -217,6 +217,10 @@ NRTContract.prototype = {
     var from = Blockchain.transaction.from;
     var allShareHolders = this._allShareHolders;
 
+    var shareHolderCount = new BigNumber(allShareHolders.length);
+    if (shareHolderCount.gt(this._totalSupply)) {
+      throw new Error("No more share available. Must buy from the exchagne.");
+    }
     if (allShareHolders.indexOf(from) >= 0) {
       throw new Error("You're already a shareholder.");
     }
@@ -263,28 +267,29 @@ NRTContract.prototype = {
     order.status = 0;
 
     if (_type === "buy") {
+      //trying to buy NRT, hand over NAS
+      //Hand over NAS
       var _value = new BigNumber(Blockchain.transaction.value);
       if (_value.lt(new BigNumber(_price))) {
         throw new Error(
           "You must deposit the number of NAS as the price you said you will pay"
         );
       }
-      
       order.balance.plus(_value);
-
       var buyIds = this._buyOrderIds;
       buyIds.push(order.id);
       this._buyOrderIds = buyIds;
     } else if (_type === "sell") {
-      var allShareHolders = this._allShareHolders;
-      if (allShareHolders.indexOf(from) < 0) {
+      //trying to sell NRT, hand over NRT
+      //Must already own a NRT
+      var balance = this.balances.get(from);
+      if (!balance || balance !== "1") {
         throw new Error(
           "You need to own a NRT share before selling. Buy it from this smart contract or from someone on the exchange"
         );
       }
-      
+      //hand over NRT
       this.balances.set(from, 0);
-      
       var sellIds = this._sellOrderIds;
       sellIds.push(order.id);
       this._sellOrderIds = sellIds;
@@ -299,6 +304,109 @@ NRTContract.prototype = {
     _myOrders.push(order.id);
     this.myOrders.set(from, _myOrders);
   },
+
+  takeOrder: function(_id) {
+    var from = Blockchain.transaction.from;
+    var order = this.orders.get(_id);
+    if (!order) {
+      throw new Error("Sorry, can't fill an order that does not exsit");
+    }
+    if (order.status !== "0") {
+      throw new Error("Sorry order must be live to take");
+    }
+    //i'm selling to the buyer who made the order, hand NRT to maker, receive NAS
+    if (order.type === "buy") {
+      //receive NAS
+      var amount = new BigNumber(order.balance);
+      var result = Blockchain.transfer(from, amount);
+      if (!result) {
+        throw new Error("Take a buy: Receive NAS failed.");
+      }
+      //transfer NRT
+      this.balances.set(from, 0);
+      this.balances.set(order.maker, 1);
+      this.transferEvent(true, from, order.maker, 1);
+      //deregister the old shareholder, register the new shareholder
+      var allShareHolders = this._allShareHolders;
+      for (const [i, shareHolder] of allShareHolders.entries()) {
+        if (shareHolder === from) {
+          allShareHolders[i] = order.maker;
+          break;
+        }
+      }
+      this._allShareHolders = allShareHolders;
+    } else if (order.type === "sell") {
+      //I'm buying NRT from the seller, send NAS to maker, receive NRT
+      var _value = new BigNumber(Blockchain.transaction.value);
+      if (_value.lt(order.price)) {
+        throw new Error(
+          "NAS paid too low. " +
+            "Paid: " +
+            _value +
+            "; Listing Price: " +
+            order.price
+        );
+      }
+      //send NAS
+      var result = Blockchain.transfer(from, _value);
+      if (!result) {
+        throw new Error("Take a sell: Receive NAS failed.");
+      }
+      //receive NRT
+      this.balances.set(from, 1);
+      this.transferEvent(true, order.maker, from, 1);
+      //deregister the old shareholder register the new shareholder
+      var allShareHolders = this._allShareHolders;
+      for (const [i, shareHolder] of allShareHolders.entries()) {
+        if (shareHolder === order.maker) {
+          allShareHolders[i] = from;
+          break;
+        }
+      }
+      this._allShareHolders = allShareHolders;
+    } else {
+      throw new Error("Wrong order type. buy or sell allowed");
+    }
+
+    // mark contract as finished
+    order.status = "1";
+    this.order.put(_id, order);
+  },
+
+  cancelOrder: function(_id) {
+    var from = Blockchain.transaction.from;
+    var order = this.orders.get(_id);
+    if (!order) {
+      throw new Error("Sorry, can't fill an order that does not exsit");
+    }
+    if (order.status !== "0") {
+      throw new Error("Sorry order must be live to cancel");
+    }
+    if (from !== order.maker) {
+      throw new Error("Only the maker can cancel the order");
+    }
+    //I was buying NRT. refund my NAS
+    if (order.type === "buy") {
+      //receive NAS
+      var amount = new BigNumber(order.balance);
+      var result = Blockchain.transfer(from, amount);
+      if (!result) {
+        throw new Error("Cancel: Receive NAS failed.");
+      }
+    } else if (order.type === "sell") {
+      // I was selling NRT, refund my NRT
+      //receive NRT
+      this.balances.set(from, 1);
+      this.transferEvent(true, from, from, 1);
+     } else {
+      throw new Error("Wrong order type. buy or sell allowed");
+    }
+
+    // mark contract as canceled
+    order.status = "2";
+    this.order.put(_id, order);
+  },
+
   getBuyOrderIds: function() {
     return this._buyOrderIds;
   },
@@ -316,7 +424,7 @@ NRTContract.prototype = {
       throw new Error("Only chairman can see shareHolder's detail");
     }
 
-    const result = this.shareHolders.get(address);
+    const result = this.shareHoldersDetail.get(address);
     return result;
   },
 
@@ -328,13 +436,13 @@ NRTContract.prototype = {
         "You need to own a NRT share before registering. Buy it from this smart contract or from someone on the exchange"
       );
     }
-    var shareHolder = this.shareHolders.get(from);
+    var shareHolder = this.shareHoldersDetail.get(from);
     if (!shareHolder) {
       shareHolder = new ShareHolder();
     }
     shareHolder.name = _name;
     shareHolder.contact = _contact;
-    this.shareHolders.put(from, shareHolder);
+    this.shareHoldersDetail.put(from, shareHolder);
   },
 
   setNewChairman: function(address) {
