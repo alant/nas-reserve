@@ -4,14 +4,12 @@ var GlobalConfig = function(text) {
   if (text) {
     var obj = JSON.parse(text);
     this.chairman = obj.chairman;
-    this.share_holders = obj.share_holders;
     this.inflation_rate = obj.inflation_rate;
     this.initial_price = obj.initial_price;
     this.current_price = obj.current_price;
     this.balance = obj.balance;
   } else {
     this.chairman = null;
-    this.share_holders = [];
     this.inflation_rate = new BigNumber(1.05);
     this.initial_price = new BigNumber(0.025 * 10 ** 18);
     this.current_price = new BigNumber(0.025 * 10 ** 18);
@@ -20,7 +18,7 @@ var GlobalConfig = function(text) {
 };
 
 GlobalConfig.prototype = {
-  toString: function () {
+  toString: function() {
     return JSON.stringify(this);
   }
 };
@@ -37,7 +35,7 @@ var ShareHolder = function(text) {
 };
 
 ShareHolder.prototype = {
-  toString: function () {
+  toString: function() {
     return JSON.stringify(this);
   }
 };
@@ -90,6 +88,14 @@ var NRTContract = function() {
       stringify: function(o) {
         return o.toString();
       }
+    },
+    _allShareHolders: {
+      parse: function(value) {
+        return JSON.parse(value);
+      },
+      stringify: function(o) {
+        return JSON.stringify(o);
+      }
     }
   });
 
@@ -123,18 +129,21 @@ var NRTContract = function() {
 
 NRTContract.prototype = {
   init: function() {
+    var from = Blockchain.transaction.from;
+    
     this._name = "Nas Reserve Token";
     this._symbol = "NRT";
     this._decimals = 0;
     this._totalSupply = new BigNumber(500);
+    var allShareHolders = [];
+    allShareHolders.push(from);
+    this._allShareHolders = allShareHolders;
 
-    var from = Blockchain.transaction.from;
     this.balances.set(from, this._totalSupply);
     this.transferEvent(true, from, from, this._totalSupply);
 
     var config = new GlobalConfig(null);
     config.chairman = from;
-    config.share_holders.push(from);
     this._config = config;
   },
 
@@ -152,22 +161,27 @@ NRTContract.prototype = {
     }
 
     var config = this.getConfig();
+
     var price = new BigNumber(config.current_price);
     price = price.mul(config.inflation_rate);
     config.current_price = price;
+
+    var balance = new BigNumber(config.balance);
+    balance = balance.plus(_value);
+    config.balance = balance;
+
     this._config = config;
-    // var _balance = new BigNumber(this._config.balance);
-    // _balance = _balance.plus(_value);
-    // this._config.balance = _balance;
 
-    // this._config.share_holders.push(from);
-
-    // var _price = new BigNumber(this._config.current_price);
-    // _price = _price.mul(new BigNumber(this._config.inflation_rate));
-    // this._config.current_price = _price;
-      
+    var allShareHolders = this._allShareHolders;
+    allShareHolders.push(from);
+    this._allShareHolders = allShareHolders;
+    
     this.balances.set(from, 1);
     this.transferEvent(true, this._config.chairman, from, 1);
+  },
+
+  getAllShareHolders: function() {
+    return this._allShareHolders;
   },
 
   getCurrentPrice: function() {

@@ -329,3 +329,31 @@ test("testing buy", async () => {
   console.log("after buyOneShare: " + result);
   expect(result).toBe(1);
 });
+
+test("testing currentPrice", async () => {
+  jest.setTimeout(15000);
+  var testInput = {
+    gasLimit: 200000,
+    gasPrice: 1000000,
+    func: "getCurrentPrice",
+    args:  "[]",
+    value: 0
+  };
+  const contractReturn = await callContract(testAccount1, testInput);
+  const result = parseInt(JSON.parse(contractReturn.result));
+  // inflation rate is 1.05, raise ** 0 as you go. e.g. 1.05 ** 1 when testing the 2nd time with the same contract etc.
+  expect(result).toBe((1.05 ** 2) * 0.025 * 10 ** 18);
+});
+
+test("testing getAllShareHolders", async () => {
+  jest.setTimeout(15000);
+  var testInput = {
+    gasLimit: 200000,
+    gasPrice: 1000000,
+    func: "getAllShareHolders",
+    args: JSON.stringify([testAccount1.getAddressString()]),
+    value: 0
+  };
+  const contractReturn = await callContract(testAccount1, testInput);
+  console.log(contractReturn);
+});
