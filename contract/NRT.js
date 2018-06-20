@@ -364,7 +364,7 @@ NRTContract.prototype = {
             order.price
         );
       }
-      var result = Blockchain.transfer(from, _value);
+      var result = Blockchain.transfer(order.maker, _value);
       if (!result) {
         throw new Error('Take a sell: Receive NAS failed.');
       }
