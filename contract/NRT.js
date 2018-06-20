@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var GlobalConfig = function(text) {
   if (text) {
@@ -9,13 +9,15 @@ var GlobalConfig = function(text) {
     this.current_price = obj.current_price;
     this.balance = obj.balance;
     this.orderSeq = obj.orderSeq;
+    this.commission = obj.commission;
   } else {
-    this.chairman = "";
+    this.chairman = '';
     this.inflation_rate = new BigNumber(1.05);
     this.initial_price = new BigNumber(0.025 * 10 ** 18);
     this.current_price = new BigNumber(0.025 * 10 ** 18);
     this.balance = new BigNumber(0);
     this.orderSeq = 0;
+    this.commission = 0.01;
   }
 };
 
@@ -31,8 +33,8 @@ var ShareHolder = function(text) {
     this.name = obj.name;
     this.contact = obj.contact;
   } else {
-    this.name = "";
-    this.contact = "";
+    this.name = '';
+    this.contact = '';
   }
 };
 
@@ -58,13 +60,13 @@ var Order = function(text) {
     this.taker = obj.taker;
     this.status = obj.status; // 0 is live, 1 is done, 2 is canceled
   } else {
-    this.id = "";
-    this.type = "";
+    this.id = '';
+    this.type = '';
     this.price = new BigNumber(0);
     this.balance = new BigNumber(0);
-    this.maker = "";
-    this.taker = "";
-    this.status = "";
+    this.maker = '';
+    this.taker = '';
+    this.status = '';
   }
 };
 
@@ -80,7 +82,7 @@ Allowed.prototype = {
   },
 
   parse: function(obj) {
-    if (typeof obj != "undefined") {
+    if (typeof obj != 'undefined') {
       var data = JSON.parse(obj);
       for (var key in data) {
         this.allowed[key] = new BigNumber(data[key]);
@@ -103,6 +105,14 @@ var NRTContract = function() {
     _symbol: null,
     _decimals: null,
     _totalSupply: {
+      parse: function(value) {
+        return new BigNumber(value);
+      },
+      stringify: function(o) {
+        return o.toString(10);
+      }
+    },
+    _profit: {
       parse: function(value) {
         return new BigNumber(value);
       },
@@ -192,10 +202,11 @@ NRTContract.prototype = {
   init: function() {
     var from = Blockchain.transaction.from;
 
-    this._name = "Nas Reserve Token";
-    this._symbol = "NRT";
+    this._name = 'Nas Reserve Token';
+    this._symbol = 'NRT';
     this._decimals = 0;
     this._totalSupply = new BigNumber(500);
+    this._profit = new BigNumber(0);
     var allShareHolders = [];
     allShareHolders.push(from);
     this._allShareHolders = allShareHolders;
@@ -219,17 +230,17 @@ NRTContract.prototype = {
 
     var shareHolderCount = new BigNumber(allShareHolders.length);
     if (shareHolderCount.gt(this._totalSupply)) {
-      throw new Error("No more share available. Must buy from the exchagne.");
+      throw new Error('No more share available. Must buy from the exchagne.');
     }
     if (allShareHolders.indexOf(from) >= 0) {
       throw new Error("You're already a shareholder.");
     }
     if (_value.lt(this._config.current_price)) {
       throw new Error(
-        "Price paid too low. " +
-          "Paid: " +
+        'Price paid too low. ' +
+          'Paid: ' +
           _value +
-          "; Current Price: " +
+          '; Current Price: ' +
           this._config.current_price
       );
     }
@@ -266,26 +277,26 @@ NRTContract.prototype = {
     order.maker = from;
     order.status = 0;
 
-    if (_type === "buy") {
+    if (_type === 'buy') {
       //trying to buy NRT, hand over NAS
       //Hand over NAS
       var _value = new BigNumber(Blockchain.transaction.value);
       if (_value.lt(new BigNumber(_price))) {
         throw new Error(
-          "You must deposit the number of NAS as the price you said you will pay"
+          'You must deposit the number of NAS as the price you said you will pay'
         );
       }
       order.balance.plus(_value);
       var buyIds = this._buyOrderIds;
       buyIds.push(order.id);
       this._buyOrderIds = buyIds;
-    } else if (_type === "sell") {
+    } else if (_type === 'sell') {
       //trying to sell NRT, hand over NRT
       //Must already own a NRT
       var balance = this.balances.get(from);
-      if (!balance || balance !== "1") {
+      if (!balance || balance !== '1') {
         throw new Error(
-          "You need to own a NRT share before selling. Buy it from this smart contract or from someone on the exchange"
+          'You need to own a NRT share before selling. Buy it from this smart contract or from someone on the exchange'
         );
       }
       //hand over NRT
@@ -294,7 +305,7 @@ NRTContract.prototype = {
       sellIds.push(order.id);
       this._sellOrderIds = sellIds;
     } else {
-      throw new Error("Order type error. Must be buy or sell");
+      throw new Error('Order type error. Must be buy or sell');
     }
 
     this._config = config;
@@ -311,16 +322,16 @@ NRTContract.prototype = {
     if (!order) {
       throw new Error("Sorry, can't fill an order that does not exsit");
     }
-    if (order.status !== "0") {
-      throw new Error("Sorry order must be live to take");
+    if (order.status !== '0') {
+      throw new Error('Sorry order must be live to take');
     }
     //i'm selling to the buyer who made the order, hand NRT to maker, receive NAS
-    if (order.type === "buy") {
+    if (order.type === 'buy') {
       //receive NAS
       var amount = new BigNumber(order.balance);
       var result = Blockchain.transfer(from, amount);
       if (!result) {
-        throw new Error("Take a buy: Receive NAS failed.");
+        throw new Error('Take a buy: Receive NAS failed.');
       }
       //transfer NRT
       this.balances.set(from, 0);
@@ -335,22 +346,27 @@ NRTContract.prototype = {
         }
       }
       this._allShareHolders = allShareHolders;
-    } else if (order.type === "sell") {
+    } else if (order.type === 'sell') {
       //I'm buying NRT from the seller, send NAS to maker, receive NRT
       var _value = new BigNumber(Blockchain.transaction.value);
       if (_value.lt(order.price)) {
         throw new Error(
-          "NAS paid too low. " +
-            "Paid: " +
+          'NAS paid too low. ' +
+            'Paid: ' +
             _value +
-            "; Listing Price: " +
+            '; Listing Price: ' +
             order.price
         );
       }
       //send NAS
-      var result = Blockchain.transfer(from, _value);
+      //charge comission here, it's the only place we charge commission because when someone is selling their NRT the price should've gone up
+      var config = this.getConfig();
+      var commission = _value.times(config.commission);
+      this._profit = this._profit.plus(commission);
+      var seller_proceed = _value.minus(commission);
+      var result = Blockchain.transfer(from, seller_proceed);
       if (!result) {
-        throw new Error("Take a sell: Receive NAS failed.");
+        throw new Error('Take a sell: Receive NAS failed.');
       }
       //receive NRT
       this.balances.set(from, 1);
@@ -365,11 +381,11 @@ NRTContract.prototype = {
       }
       this._allShareHolders = allShareHolders;
     } else {
-      throw new Error("Wrong order type. buy or sell allowed");
+      throw new Error('Wrong order type. buy or sell allowed');
     }
 
     // mark contract as finished
-    order.status = "1";
+    order.status = '1';
     this.order.put(_id, order);
   },
 
@@ -379,31 +395,31 @@ NRTContract.prototype = {
     if (!order) {
       throw new Error("Sorry, can't fill an order that does not exsit");
     }
-    if (order.status !== "0") {
-      throw new Error("Sorry order must be live to cancel");
+    if (order.status !== '0') {
+      throw new Error('Sorry order must be live to cancel');
     }
     if (from !== order.maker) {
-      throw new Error("Only the maker can cancel the order");
+      throw new Error('Only the maker can cancel the order');
     }
     //I was buying NRT. refund my NAS
-    if (order.type === "buy") {
+    if (order.type === 'buy') {
       //receive NAS
       var amount = new BigNumber(order.balance);
       var result = Blockchain.transfer(from, amount);
       if (!result) {
-        throw new Error("Cancel: Receive NAS failed.");
+        throw new Error('Cancel: Receive NAS failed.');
       }
-    } else if (order.type === "sell") {
+    } else if (order.type === 'sell') {
       // I was selling NRT, refund my NRT
       //receive NRT
       this.balances.set(from, 1);
       this.transferEvent(true, from, from, 1);
-     } else {
-      throw new Error("Wrong order type. buy or sell allowed");
+    } else {
+      throw new Error('Wrong order type. buy or sell allowed');
     }
 
     // mark contract as canceled
-    order.status = "2";
+    order.status = '2';
     this.order.put(_id, order);
   },
 
@@ -433,7 +449,7 @@ NRTContract.prototype = {
     var allShareHolders = this._allShareHolders;
     if (allShareHolders.indexOf(from) < 0) {
       throw new Error(
-        "You need to own a NRT share before registering. Buy it from this smart contract or from someone on the exchange"
+        'You need to own a NRT share before registering. Buy it from this smart contract or from someone on the exchange'
       );
     }
     var shareHolder = this.shareHoldersDetail.get(from);
@@ -449,11 +465,74 @@ NRTContract.prototype = {
     var from = Blockchain.transaction.from;
     var config = this.getConfig();
     if (from !== config.chairman) {
-      throw new Error("Only chairman can set new chairman!");
+      throw new Error('Only chairman can set new chairman!');
     }
 
     config.chairman = address;
     this._config = config;
+  },
+
+  setCommission: function(_commission) {
+    var from = Blockchain.transaction.from;
+    var config = this.getConfig();
+    if (from !== config.chairman) {
+      throw new Error('Only chairman can set commission!');
+    }
+
+    config.commission = _commission;
+    this._config = config;
+  },
+
+  distributeProfit: function(_totalAmount) {
+    var from = Blockchain.transaction.from;
+    var config = this.getConfig();
+    if (from !== config.chairman) {
+      throw new Error('Only chairman can distribute profit!');
+    }
+
+    var allShareHolders = this._allShareHolders;
+    var _count = new BigNumber(allShareHolders.length);
+    _totalAmount = new BigNumber(_totalAmount);
+    var _amount = _totalAmount.div(_count);
+    this._profit = this._profit.minus(_totalAmount);
+    for (const [i, shareHolder] of allShareHolders.entries()) {
+      var result = Blockchain.transfer(shareHolder, _amount);
+      if (!result) {
+        throw new Error('distributeProfit failed at: ' + i + '. consider manually doing it for the rest');
+      }
+    }
+  },
+
+  transferIn: function(_type) {
+    var _value = new BigNumber(Blockchain.transaction.value);
+    if (_type === '1') {
+      this._profit = this._profit.plus(_value);
+    } else {
+      var config = this.getConfig();
+      var balance = new BigNumber(config.balance);
+      balance = balance.plus(_value);
+      config.balance = balance;
+      this._config = config;
+    }
+  },
+
+  transferOut: function(_to, _amount) {
+    var from = Blockchain.transaction.from;
+    var config = this.getConfig();
+    if (from !== config.chairman) {
+      throw new Error('Only chairman can transfer funds out!');
+    }
+
+    var config = this.getConfig();
+    var balance = new BigNumber(config.balance);
+    balance = balance.minus(new BigNumber(_amount));
+    config.balance = balance;
+    this._config = config;
+
+    var result = Blockchain.transfer(_to, _amount);
+    if (!result) {
+      throw new Error('Transfer funds out failed. We are doomed.');
+    }
   },
 
   getAllShareHolders: function() {
@@ -463,6 +542,15 @@ NRTContract.prototype = {
   getCurrentPrice: function() {
     const result = this.getConfig().current_price;
     return result;
+  },
+
+  getCommission: function() {
+    const result = this.getConfig().commission;
+    return result;
+  },
+
+  getProfit: function() {
+    return this._profit;
   },
 
   getConfig: function() {
@@ -494,21 +582,21 @@ NRTContract.prototype = {
     if (balance instanceof BigNumber) {
       return balance.toString();
     } else {
-      return "0";
+      return '0';
     }
   },
 
   transfer: function(to, value) {
     value = new BigNumber(value);
     if (value.lt(0)) {
-      throw new Error("invalid value.");
+      throw new Error('invalid value.');
     }
 
     var from = Blockchain.transaction.from;
     var balance = this.balances.get(from) || new BigNumber(0);
 
     if (balance.lt(value)) {
-      throw new Error("transfer failed.");
+      throw new Error('transfer failed.');
     }
 
     this.balances.set(from, balance.sub(value));
@@ -538,7 +626,7 @@ NRTContract.prototype = {
 
       this.transferEvent(true, from, to, value);
     } else {
-      throw new Error("transfer failed.");
+      throw new Error('transfer failed.');
     }
   },
 
@@ -558,14 +646,14 @@ NRTContract.prototype = {
 
     var oldValue = this.allowance(from, spender);
     if (oldValue != currentValue.toString()) {
-      throw new Error("current approve value mistake.");
+      throw new Error('current approve value mistake.');
     }
 
     var balance = new BigNumber(this.balanceOf(from));
     var value = new BigNumber(_value);
 
     if (value.lt(0) || balance.lt(value)) {
-      throw new Error("invalid value.");
+      throw new Error('invalid value.');
     }
 
     var owned = this.allowed.get(from) || new Allowed();
@@ -592,11 +680,11 @@ NRTContract.prototype = {
 
     if (owned instanceof Allowed) {
       var spender = owned.get(_spender);
-      if (typeof spender != "undefined") {
+      if (typeof spender != 'undefined') {
         return spender.toString(10);
       }
     }
-    return "0";
+    return '0';
   }
 };
 
