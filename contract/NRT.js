@@ -44,10 +44,6 @@ ShareHolder.prototype = {
   }
 };
 
-var Allowed = function(obj) {
-  this.allowed = {};
-  this.parse(obj);
-};
 
 var Order = function(text) {
   if (text) {
@@ -74,6 +70,11 @@ Order.prototype = {
   toString: function() {
     return JSON.stringify(this);
   }
+};
+
+var Allowed = function(obj) {
+  this.allowed = {};
+  this.parse(obj);
 };
 
 Allowed.prototype = {
