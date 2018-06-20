@@ -277,7 +277,7 @@ NRTContract.prototype = {
     order.maker = from;
     order.status = 0;
 
-    if (_type === 'buy') {
+    if (_type === '1') {
       //trying to buy NRT, hand over NAS
       //Hand over NAS
       var _value = new BigNumber(Blockchain.transaction.value);
@@ -290,7 +290,7 @@ NRTContract.prototype = {
       var buyIds = this._buyOrderIds;
       buyIds.push(order.id);
       this._buyOrderIds = buyIds;
-    } else if (_type === 'sell') {
+    } else if (_type === '2') {
       //trying to sell NRT, hand over NRT
       //Must already own a NRT
       var balance = this.balances.get(from);
@@ -326,10 +326,15 @@ NRTContract.prototype = {
       throw new Error('Sorry order must be live to take');
     }
     //i'm selling to the buyer who made the order, hand NRT to maker, receive NAS
-    if (order.type === 'buy') {
+    if (order.type === '1') {
       //receive NAS
+      //charge comission here, it's the only place we charge commission because when someone is selling their NRT the price should've gone up
+      var config = this.getConfig();
+      var commission = amount.times(config.commission);
+      this._profit = this._profit.plus(commission);
       var amount = new BigNumber(order.balance);
-      var result = Blockchain.transfer(from, amount);
+      var seller_proceed = amount.minus(commission);     
+      var result = Blockchain.transfer(from, seller_proceed);
       if (!result) {
         throw new Error('Take a buy: Receive NAS failed.');
       }
@@ -346,8 +351,9 @@ NRTContract.prototype = {
         }
       }
       this._allShareHolders = allShareHolders;
-    } else if (order.type === 'sell') {
+    } else if (order.type === '2') {
       //I'm buying NRT from the seller, send NAS to maker, receive NRT
+      //send NAS
       var _value = new BigNumber(Blockchain.transaction.value);
       if (_value.lt(order.price)) {
         throw new Error(
@@ -358,13 +364,7 @@ NRTContract.prototype = {
             order.price
         );
       }
-      //send NAS
-      //charge comission here, it's the only place we charge commission because when someone is selling their NRT the price should've gone up
-      var config = this.getConfig();
-      var commission = _value.times(config.commission);
-      this._profit = this._profit.plus(commission);
-      var seller_proceed = _value.minus(commission);
-      var result = Blockchain.transfer(from, seller_proceed);
+      var result = Blockchain.transfer(from, _value);
       if (!result) {
         throw new Error('Take a sell: Receive NAS failed.');
       }
@@ -402,14 +402,14 @@ NRTContract.prototype = {
       throw new Error('Only the maker can cancel the order');
     }
     //I was buying NRT. refund my NAS
-    if (order.type === 'buy') {
+    if (order.type === '1') {
       //receive NAS
       var amount = new BigNumber(order.balance);
       var result = Blockchain.transfer(from, amount);
       if (!result) {
         throw new Error('Cancel: Receive NAS failed.');
       }
-    } else if (order.type === 'sell') {
+    } else if (order.type === '2') {
       // I was selling NRT, refund my NRT
       //receive NRT
       this.balances.set(from, 1);
