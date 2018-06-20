@@ -33,7 +33,7 @@
       <router-view></router-view>
     </v-content>
 
-    <v-footer :fixed="fixed" app>
+    <v-footer app>
       <v-layout row wrap justify-center>
         <span>NAS Reserve 2018</span>
       </v-layout>
@@ -42,23 +42,25 @@
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld";
-
 export default {
-  name: "App",
-  components: {
-    HelloWorld
-  },
+  name: 'App',
+  components: {},
   data() {
     return {
-      appTitle: "NAS Reserve",
+      appTitle: 'NAS Reserve',
       sidebar: false,
       menuItems: [
-        { title: "Purchase Reserve Token", path: "/buy" },
-        { title: "Exchange", path: "/exchange" },
-        { title: "About", path: "/about" }
+        { title: 'Purchase Reserve Token', path: '/buy' },
+        { title: 'Exchange', path: '/exchange' },
+        { title: 'About', path: '/about' }
       ]
     };
+  },
+  methods: {
+    beforeMount() {
+      // eslint-disable-next-line
+      console.log('==> beforeMount');
+    }
   }
 };
 </script>
