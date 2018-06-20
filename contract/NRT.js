@@ -275,7 +275,7 @@ NRTContract.prototype = {
 
     var from = Blockchain.transaction.from;
     order.maker = from;
-    order.status = 0;
+    order.status = '0';
 
     if (_type === '1') {
       //trying to buy NRT, hand over NAS
