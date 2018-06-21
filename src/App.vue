@@ -18,13 +18,22 @@
       </span>
       <v-toolbar-title>
         <router-link to="/" tag="span" style="cursor: pointer">
-          {{ appTitle }}
+          {{ $t("message.appTitle") }}
         </router-link>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items class="hidden-xs-only">
-        <v-btn flat v-for="item in menuItems" :key="item.title" :to="item.path">
-          {{ item.title }}
+        <v-btn flat to="/buy">
+          {{ $t('message.purchaseNRT') }}
+        </v-btn>
+        <v-btn flat to="/exchange">
+          {{ $t('message.exchange') }}
+        </v-btn>
+        <v-btn flat to="/about">
+          {{ $t('message.about') }}
+        </v-btn>
+        <v-btn v-on:click="switchLocale">
+          {{ lang }}
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
@@ -49,17 +58,22 @@ export default {
     return {
       appTitle: 'NAS Reserve',
       sidebar: false,
-      menuItems: [
-        { title: 'Purchase Reserve Token', path: '/buy' },
-        { title: 'Exchange', path: '/exchange' },
-        { title: 'About', path: '/about' }
-      ]
+      lang: 'English'
     };
   },
   methods: {
     beforeMount() {
       // eslint-disable-next-line
       console.log('==> beforeMount');
+    },
+    switchLocale() {
+      if (this.lang === 'English') {
+        this.$i18n.locale = 'en';
+        this.lang = '中文';
+      } else {
+        this.$i18n.locale = 'zh';
+        this.lang = 'English';
+      }
     }
   }
 };
