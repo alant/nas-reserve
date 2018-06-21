@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint-disable */
+
 var Allowed = function(obj) {
   this.allowed = {};
   this.parse(obj);

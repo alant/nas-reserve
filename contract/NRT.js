@@ -1,5 +1,7 @@
 'use strict';
 
+/* eslint-disable */
+
 var GlobalConfig = function(text) {
   if (text) {
     var obj = JSON.parse(text);
