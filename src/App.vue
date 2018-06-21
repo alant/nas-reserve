@@ -2,11 +2,17 @@
   <v-app>
     <v-navigation-drawer v-model="sidebar" app>
       <v-list>
-        <v-list-tile v-for="item in menuItems" :key="item.title" :to="item.path">
-          <v-list-tile-action>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>{{ item.title }}</v-list-tile-content>
+        <v-list-tile to="/buy">
+          <v-list-tile-content>{{ $t('message.purchaseNRT') }}</v-list-tile-content>
+        </v-list-tile>
+        <v-list-tile to="/exchange">
+          <v-list-tile-content>{{ $t('message.exchange') }}</v-list-tile-content>
+        </v-list-tile>
+        <v-list-tile to="/about">
+          <v-list-tile-content>{{ $t('message.about') }}</v-list-tile-content>
+        </v-list-tile>
+        <v-list-tile v-on:click="switchLocale">
+          <v-list-tile-content> {{ lang }}</v-list-tile-content>
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
@@ -18,13 +24,27 @@
       </span>
       <v-toolbar-title>
         <router-link to="/" tag="span" style="cursor: pointer">
-          {{ appTitle }}
+          {{ $t("message.appTitle") }}
         </router-link>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items class="hidden-xs-only">
-        <v-btn flat v-for="item in menuItems" :key="item.title" :to="item.path">
-          {{ item.title }}
+        <v-btn flat to="/buy">
+          {{ $t('message.purchaseNRT') }}
+        </v-btn>
+        <v-btn flat to="/exchange">
+          {{ $t('message.exchange') }}
+        </v-btn>
+        <v-btn flat to="/about">
+          {{ $t('message.about') }}
+        </v-btn>
+        <v-btn v-on:click="switchLocale">
+          <div v-if="lang === 'en'">
+            中文
+          </div>
+          <div v-else-if="lang === 'zh'">
+            English
+          </div>
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
@@ -42,6 +62,8 @@
 </template>
 
 <script>
+import EventBus from './event-bus';
+
 export default {
   name: 'App',
   components: {},
@@ -49,17 +71,22 @@ export default {
     return {
       appTitle: 'NAS Reserve',
       sidebar: false,
-      menuItems: [
-        { title: 'Purchase Reserve Token', path: '/buy' },
-        { title: 'Exchange', path: '/exchange' },
-        { title: 'About', path: '/about' }
-      ]
+      lang: this.$i18n.locale
     };
   },
   methods: {
     beforeMount() {
       // eslint-disable-next-line
-      console.log('==> beforeMount');
+    },
+    switchLocale() {
+      if (this.lang === 'en') {
+        this.$i18n.locale = 'zh';
+        this.lang = 'zh';
+      } else {
+        this.$i18n.locale = 'en';
+        this.lang = 'en';
+      }
+      EventBus.$emit('locale', this.$i18n.locale);
     }
   }
 };
