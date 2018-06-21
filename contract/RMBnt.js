@@ -83,6 +83,7 @@ var Order = function(text) {
     this.maker = obj.maker;
     this.taker = obj.taker;
     this.status = obj.status; // 0 is live, 1 is done, 2 is canceled
+    this.timeStamp = obj.timeStamp;
   } else {
     this.id = '';
     this.type = '';
@@ -92,6 +93,7 @@ var Order = function(text) {
     this.maker = '';
     this.taker = '';
     this.status = '';
+    this.timeStamp = 0;
   }
 };
 
@@ -228,6 +230,8 @@ RMBntContract.prototype = {
     order.price = price;
     var amount = new BigNumber(_amount);
     order.amount = _amount;
+    var _now = Date.now();
+    order.timeStamp = parseInt(_now / 1000);
 
     var from = Blockchain.transaction.from;
     order.maker = from;
