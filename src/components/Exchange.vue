@@ -78,7 +78,7 @@ export default {
       sellPrice: 0.12,
       buyPrice: 0.13,
       e1: null,
-      items: [{ text: 'NRT' }, { text: 'USDnt' }],
+      items: [{ text: 'NRT' }, { text: 'RMBnt' }],
       alert: true
     };
   },
