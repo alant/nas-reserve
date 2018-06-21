@@ -64,6 +64,38 @@
           </v-btn>
         </v-card>
       </v-flex>
+      <v-flex xs6>
+        <v-subheader>Buy </v-subheader>
+        <v-data-table
+          :headers="buyHeaders"
+          :items="buyOrders"
+          hide-actions
+          class="elevation-1"
+        >
+          <template slot="items" slot-scope="props">
+            <td class="text-xs-right">{{ props.item.playId }}</td>
+            <td class="text-xs-right">{{ props.item.amount }}</td>
+            <td class="text-xs-right">{{ props.item.price }}</td>
+            <td class="text-xs-right">{{ props.item.time }}</td>
+          </template>
+        </v-data-table>
+      </v-flex>
+      <v-flex xs6>
+        <v-subheader>Sell </v-subheader>
+        <v-data-table
+           :headers="sellHeaders"
+           :items="sellOrders"
+           hide-actions
+           class="elevation-1"
+        >
+          <template slot="items" slot-scope="props">
+            <td class="text-xs-right">{{ props.item.playId }}</td>
+            <td class="text-xs-right">{{ props.item.amount }}</td>
+            <td class="text-xs-right">{{ props.item.price }}</td>
+            <td class="text-xs-right">{{ props.item.time }}</td>
+          </template>
+        </v-data-table>
+      </v-flex>
     </v-layout>
   </v-container>
 </template>
@@ -79,7 +111,45 @@ export default {
       buyPrice: 0.13,
       e1: null,
       items: [{ text: 'NRT' }, { text: 'RMBnt' }],
-      alert: true
+      alert: true,
+      buyHeaders: [
+        {
+          text: 'Player',
+          align: 'left',
+          sortable: false,
+          value: 'playId'
+        },
+        { text: 'Amount', value: 'amount' },
+        { text: 'Price (NAS)', value: 'price' },
+        { text: 'Time', value: 'time' }
+      ],
+      buyOrders: [
+        {
+          playId: 'Player #411',
+          amount: 100,
+          price: 1.59,
+          time: '6/20/2018, 9:05:00 PM'
+        }
+      ],
+      sellHeaders: [
+        {
+          text: 'Player',
+          align: 'left',
+          sortable: false,
+          value: 'playId'
+        },
+        { text: 'Amount', value: 'amount' },
+        { text: 'Price (NAS)', value: 'price' },
+        { text: 'Time', value: 'time' }
+      ],
+      sellOrders: [
+        {
+          playId: 'Play #511',
+          amount: 200,
+          price: 0.11,
+          time: '6/18/2018, 5:00:00 PM'
+        }
+      ]
     };
   },
   methods: {
