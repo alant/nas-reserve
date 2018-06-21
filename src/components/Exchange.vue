@@ -167,7 +167,7 @@ export default {
       console.log(`Sell ${this.sellNumbers} tokens is called.`);
     },
     getPrice() {
-      console.log('=> exchange getPrice')
+      console.log('=> exchange getPrice');
       const testAccount1 = new Wallet.Account(
         '2b779296ab0ee991a73ecc61319afff8352d171b0a8778ef623911f65d7bf5b4'
       );
