@@ -2,58 +2,97 @@
   <v-container fluid>
     <v-slide-y-transition mode="out-in">
       <v-layout column align-center>
-        <img src="@/assets/logo.png" alt="Vuetify.js" class="mb-5">The price right now is: {{price}}
+        <v-flex xs12 sm6>
+          <v-card>
+            <v-card-title primary-title>
+              <div>
+                <div>
+                  <div v-html="$t('message.nasrdesc')"></div>
+                  <br> {{ $t('message.pricenow') }}: {{price}} NAS
+                </div>
+              </div>
+            </v-card-title>
+            <v-card-actions>
+              <v-btn color="primary" v-on:click="buy">{{ $t('message.buyBtn') }}</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-flex>
       </v-layout>
     </v-slide-y-transition>
+    <check-tx v-model="checkTxDialog" />
   </v-container>
 </template>
 
 <script>
-const HttpRequest = require('nebulas').HttpRequest;
-const Wallet = require('nebulas');
+import EventBus from '../event-bus';
+import CheckTX from './CheckTX';
 
 export default {
-  name: 'HelloWorld',
+  name: 'Home',
+  components: {
+    'check-tx': CheckTX
+  },
   data() {
     return {
-      price: 0
+      price: 0,
+      checkTxDialog: false
     };
   },
   methods: {
     getPrice() {
-      const testAccount1 = new Wallet.Account(
-        '2b779296ab0ee991a73ecc61319afff8352d171b0a8778ef623911f65d7bf5b4'
-      );
-      const neb = new Wallet.Neb();
-      neb.setRequest(new HttpRequest('https://testnet.nebulas.io'));
-      const toAddress = 'n1jEnfDcwFdjseYTz7yLgd6LsgS7Hmfoueb';
-      const gasLimit = 200000;
-      const gasPrice = 1000000;
-
       const call = {
         function: 'getCurrentPrice',
         args: '[]'
       };
-      neb.api
+      this.$neb.api
         .call(
-          testAccount1.getAddressString(),
-          toAddress,
+          this.$account.getAddressString(),
+          this.$contractAddr,
           0,
           '0',
-          gasPrice,
-          gasLimit,
+          this.$gasPrice,
+          this.$gasLimit,
           call
         )
         .then((resp) => {
           if (resp.execute_err.length > 0) {
             throw new Error(resp.execute_err);
           }
-          const result = JSON.parse(resp.result);
+          const result = JSON.parse(resp.result) / (10 ** 18);
           if (!result) {
             throw new Error('访问合约API出错');
           }
           this.price = result;
         });
+    },
+    buy() {
+      console.log('==> buy buy buy');
+      this.$nebPay.call(
+        this.$contractAddr,
+        this.price,
+        'buyOneShare',
+        '[]',
+        {
+          listener: (data) => {
+            console.log(`==> data return: ${JSON.stringify(data)}`);
+            if (
+              JSON.stringify(data) === 'Error: Transaction rejected by user'
+            ) {
+              console.log('=> transaction rejected');
+              return;
+            }
+            if (data.txhash) {
+              const txhash = data.txhash;
+              console.log(`=> this transaction's hash: ${txhash}`);
+              EventBus.$emit('check', txhash);
+              //
+              this.checkTxDialog = true;
+            } else {
+              console.log('=> transaction failed');
+            }
+          }
+        }
+      );
     }
   },
   beforeMount() {

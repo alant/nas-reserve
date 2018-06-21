@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 var HttpRequest = require("nebulas").HttpRequest;
 var Wallet = require("nebulas");
 var FS = require("fs");

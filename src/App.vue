@@ -23,6 +23,7 @@
         </v-toolbar-side-icon>
       </span>
       <v-toolbar-title>
+        <img src="./assets/logoxs.png" />
         <router-link to="/" tag="span" style="cursor: pointer">
           {{ $t("message.appTitle") }}
         </router-link>
@@ -55,7 +56,7 @@
 
     <v-footer app>
       <v-layout row wrap justify-center>
-        <span>NAS Reserve 2018</span>
+        <span>{{ $t("message.appTitle") }} 2018</span>
       </v-layout>
     </v-footer>
   </v-app>
@@ -69,7 +70,6 @@ export default {
   components: {},
   data() {
     return {
-      appTitle: 'NAS Reserve',
       sidebar: false,
       lang: this.$i18n.locale
     };

@@ -46,7 +46,6 @@ ShareHolder.prototype = {
   }
 };
 
-
 var Order = function(text) {
   if (text) {
     var obj = JSON.parse(text);
@@ -301,11 +300,18 @@ NRTContract.prototype = {
       //trying to sell NRT, hand over NRT
       //Must already own a NRT
       var balance = this.balances.get(from);
-      if (!balance || balance !== '1') {
+      if (!balance) {
         throw new Error(
           'You need to own a NRT share before selling. Buy it from this smart contract or from someone on the exchange'
         );
       }
+      balance = new BigNumber(balance);
+      if (balance.lt(1)) {
+        throw new Error(
+          'Your NRT balance is currently 0. Did you already have a sell order?'
+        );
+      }
+
       //hand over NRT
       this.balances.set(from, 0);
       var sellIds = this._sellOrderIds;
@@ -340,7 +346,7 @@ NRTContract.prototype = {
       var commission = amount.times(config.commission);
       this._profit = this._profit.plus(commission);
       var amount = new BigNumber(order.balance);
-      var seller_proceed = amount.minus(commission);     
+      var seller_proceed = amount.minus(commission);
       var result = Blockchain.transfer(from, seller_proceed);
       if (!result) {
         throw new Error('Take a buy: Receive NAS failed.');
@@ -443,8 +449,8 @@ NRTContract.prototype = {
   getShareHolderDetail: function(address) {
     var from = Blockchain.transaction.from;
     var config = this.getConfig();
-    if (from !== config.chairman) {
-      throw new Error("Only chairman can see shareHolder's detail");
+    if (from !== config.chairman && from !== address) {
+      throw new Error("Only chairman or yourself can see shareHolder's detail");
     }
 
     const result = this.shareHoldersDetail.get(address);
@@ -505,7 +511,11 @@ NRTContract.prototype = {
     for (const [i, shareHolder] of allShareHolders.entries()) {
       var result = Blockchain.transfer(shareHolder, _amount);
       if (!result) {
-        throw new Error('distributeProfit failed at: ' + i + '. consider manually doing it for the rest');
+        throw new Error(
+          'distributeProfit failed at: ' +
+            i +
+            '. consider manually doing it for the rest'
+        );
       }
     }
   },

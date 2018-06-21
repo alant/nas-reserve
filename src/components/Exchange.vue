@@ -1,8 +1,8 @@
 <template>
   <v-container grid-list-md text-xs-center>
-    <v-layout row wrap justify-center>
-      <v-flex xs3>
-        <v-subheader>Select the coin to trade: </v-subheader>
+    <v-layout row wrap align-center justify-center>
+      <v-flex xs3 class="text-xs-right">
+        <v-subheader class="fluid text-xs-right">{{ $t("message.selectCoin") }}: </v-subheader>
       </v-flex>
       <v-flex xs3>
         <v-select :items="items" v-model="e1" label="Select" single-line></v-select>
@@ -32,7 +32,7 @@
           </v-layout>
           <v-layout row>
             <v-flex>
-              <v-text-field v-model="buyNumbers" type="number" placeholder="0" />
+              <v-text-field v-model="buyNumbers" type="number" placeholder="currentPrice" />
             </v-flex>
           </v-layout>
           <v-btn color="green" v-on:click="buyToken">
@@ -42,36 +42,35 @@
       </v-flex>
       <v-flex xs6>
         <v-card justify-start>
-          <v-card-text class="px-0">Sell</v-card-text>
+          <v-card-text class="px-0">{{ $t("message.sellCard") }}</v-card-text>
           <v-layout row>
-            <v-flex offset-xs3 xs3>
-              <v-subheader>price:
+            <v-flex offset-xs2 xs4>
+              <v-subheader>{{ $t("message.price") }} (NAS):
               </v-subheader>
             </v-flex>
             <v-flex xs6>
               <v-subheader>
-                {{sellPrice}}
+                <v-text-field v-model="currentPrice" type="number" placeholder="currentPrice" />
               </v-subheader>
             </v-flex>
           </v-layout>
           <v-layout row>
-            <v-flex>
+            <v-flex offset-xs2 xs4>
+              <v-subheader>{{ $t("message.quantity") }}
+              </v-subheader>
+            </v-flex>
+            <v-flex xs6>
               <v-text-field v-model="sellNumbers" type="number" placeholder="0" />
             </v-flex>
           </v-layout>
           <v-btn color="red" v-on:click="sellToken">
-            sell
+            {{ $t("message.sellCard") }}
           </v-btn>
         </v-card>
       </v-flex>
       <v-flex xs6>
         <v-subheader>Buy </v-subheader>
-        <v-data-table
-          :headers="buyHeaders"
-          :items="buyOrders"
-          hide-actions
-          class="elevation-1"
-        >
+        <v-data-table :headers="buyHeaders" :items="buyOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
             <td class="text-xs-right">{{ props.item.amount }}</td>
@@ -82,12 +81,7 @@
       </v-flex>
       <v-flex xs6>
         <v-subheader>Sell </v-subheader>
-        <v-data-table
-           :headers="sellHeaders"
-           :items="sellOrders"
-           hide-actions
-           class="elevation-1"
-        >
+        <v-data-table :headers="sellHeaders" :items="sellOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
             <td class="text-xs-right">{{ props.item.amount }}</td>
@@ -97,24 +91,27 @@
         </v-data-table>
       </v-flex>
     </v-layout>
+    <check-tx v-model="checkTxDialog" :TXData="txData"/>
   </v-container>
 </template>
 
 <script>
-const HttpRequest = require('nebulas').HttpRequest;
-const Wallet = require('nebulas');
-// const NebPay = require('nebpay');
+// import EventBus from '../event-bus';
+import CheckTX from './CheckTX';
 
 export default {
   name: 'Exchange',
+  components: {
+    'check-tx': CheckTX
+  },
   data() {
     return {
       currentPrice: 0,
-      sellNumbers: 0,
-      buyNumbers: 0,
+      sellNumbers: 1,
+      buyNumbers: 1,
       sellPrice: 0.12,
       buyPrice: 0.13,
-      e1: null,
+      e1: 'NRT',
       items: [{ text: 'NRT', value: 'NRT' }, { text: 'RMBnt', value: 'RMBnt' }],
       alert: true,
       buyHeaders: [
@@ -154,7 +151,9 @@ export default {
           price: 0.11,
           time: '6/18/2018, 5:00:00 PM'
         }
-      ]
+      ],
+      checkTxDialog: false,
+      txData: null
     };
   },
   methods: {
@@ -165,41 +164,54 @@ export default {
     },
     sellToken() {
       console.log(`Sell ${this.sellNumbers} tokens is called.`);
+      const value = this.$Unit.nasToBasic(this.currentPrice);
+      const callFunction = 'newOrder';
+      const callArgs = JSON.stringify(['2', value]);
+      this.$nebPay.call(this.$contractAddr, 0, callFunction, callArgs, {
+        listener: (data) => {
+          if (
+            JSON.stringify(data) === '"Error: Transaction rejected by user"'
+          ) {
+            console.log('=> transaction rejected');
+            return;
+          }
+          if (data.txhash) {
+            const txhash = data.txhash;
+            console.log(`=> this transaction's hash: ${txhash}`);
+            this.txData = data;
+            //
+            this.checkTxDialog = true;
+          } else {
+            console.log('=> transaction failed');
+          }
+        }
+      });
     },
     getPrice() {
       console.log('=> exchange getPrice');
-      const testAccount1 = new Wallet.Account(
-        '2b779296ab0ee991a73ecc61319afff8352d171b0a8778ef623911f65d7bf5b4'
-      );
-      const neb = new Wallet.Neb();
-      neb.setRequest(new HttpRequest('https://testnet.nebulas.io'));
-      const toAddress = 'n1tqSiUCEqr7B5E61hJ74M1GavFE9yPH9rx';
-      const gasLimit = 200000;
-      const gasPrice = 1000000;
-
       const call = {
         function: 'getCurrentPrice',
         args: '[]'
       };
-      neb.api
+      this.$neb.api
         .call(
-          testAccount1.getAddressString(),
-          toAddress,
+          this.$account.getAddressString(),
+          this.$contractAddr,
           0,
           '0',
-          gasPrice,
-          gasLimit,
+          this.$gasPrice,
+          this.$gasLimit,
           call
         )
         .then((resp) => {
           if (resp.execute_err.length > 0) {
             throw new Error(resp.execute_err);
           }
-          const result = JSON.parse(resp.result) / (10 ** 18);
+          const nasBase = 10 ** 18;
+          const result = JSON.parse(resp.result) / nasBase;
           if (!result) {
             throw new Error('访问合约API出错');
           }
-
           this.currentPrice = result;
         });
     }
