@@ -4,8 +4,10 @@ import Vue from 'vue';
 import Vuetify from 'vuetify';
 import 'vuetify/dist/vuetify.min.css';
 import VueI18n from 'vue-i18n';
+import VueLocalStorage from 'vue-localstorage';
 import App from './App';
 import router from './router';
+import EventBus from './event-bus';
 
 Vue.use(Vuetify, {});
 Vue.use(VueI18n);
@@ -34,9 +36,23 @@ const messages = {
     }
   }
 };
+
+Vue.use(VueLocalStorage);
+let myLocale = Vue.localStorage.get('locale');
+if (!myLocale) {
+  console.log(`==> no local storage : ${myLocale}`);
+  myLocale = navigator.language.substring(0, 2);
+}
+
+console.log(`==> lang: ${myLocale}`);
+
 const i18n = new VueI18n({
-  locale: 'zh', // set default locale
+  locale: myLocale, // set default locale
   messages // set locale messages
+});
+
+EventBus.$on('locale', (localeParam) => {
+  Vue.localStorage.set('locale', localeParam);
 });
 
 /* eslint-disable no-new */
@@ -45,5 +61,5 @@ new Vue({
   router,
   components: { App },
   template: '<App/>',
-  i18n,
+  i18n
 });
