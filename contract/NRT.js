@@ -57,6 +57,7 @@ var Order = function(text) {
     this.maker = obj.maker;
     this.taker = obj.taker;
     this.status = obj.status; // 0 is live, 1 is done, 2 is canceled
+    this.timeStamp = obj.timeStamp;
   } else {
     this.id = '';
     this.type = '';
@@ -65,6 +66,7 @@ var Order = function(text) {
     this.maker = '';
     this.taker = '';
     this.status = '';
+    this.timeStamp = 0;
   }
 };
 
@@ -275,6 +277,8 @@ NRTContract.prototype = {
     config.orderSeq += 1;
     order.type = _type;
     order.price = new BigNumber(_price);
+    var _now = Date.now();
+    order.timeStamp = parseInt(_now / 1000);
 
     var from = Blockchain.transaction.from;
     order.maker = from;

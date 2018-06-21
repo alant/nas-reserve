@@ -5,6 +5,7 @@ import Vuetify from 'vuetify';
 import 'vuetify/dist/vuetify.min.css';
 import VueI18n from 'vue-i18n';
 import VueLocalStorage from 'vue-localstorage';
+import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import App from './App';
 import router from './router';
 import EventBus from './event-bus';
