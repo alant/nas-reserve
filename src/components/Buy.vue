@@ -3,7 +3,7 @@
     <v-slide-y-transition mode="out-in">
       <v-layout column align-center>
         The price right now is: {{price}} NAS
-        
+
         <v-text-field v-model="tokenNumbers" type="number"
            placeholder="0" label="tokens"/>
         <v-btn color="success" v-on:click="buy">Buy</v-btn>
