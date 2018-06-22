@@ -140,6 +140,7 @@
 
 <script>
 import axios from 'axios';
+import { BigNumber } from 'bignumber.js';
 import CheckTX from './CheckTX';
 import CurrentOrder from './CurrentOrder';
 import EventBus from '../event-bus';
@@ -230,7 +231,7 @@ export default {
       txData: null,
       contractAddresses: [
         this.$contractAddr,
-        'n1yY82jMEviUiAFj6cE2xt1oMLELf2Vpx4F'
+        'n1jy7E4uTgyw5huAGjwSLmkecxfaQwCEHh8'
       ],
       currentContract: this.$contractAddr,
       orderDialog: false,
@@ -335,9 +336,6 @@ export default {
     },
     buyFromSellList(entry) {
       console.log(`==>buying: ${JSON.stringify(entry)}`);
-      // const callFunction = 'takeOrder';
-      // let callArgs;
-      // let value;
       if (this.selectedToken === '0') {
         // callArgs = JSON.stringify([entry.orderId]);
         // value = entry.price;
@@ -347,27 +345,34 @@ export default {
           this.orderDialog = true;
         }
       }
-      // this.$nebPay.call(this.currentContract, value, callFunction, callArgs, {
-      //   listener: (data) => {
-      //     if (
-      //       JSON.stringify(data) === '"Error: Transaction rejected by user"'
-      //     ) {
-      //       console.log('=> transaction rejected');
-      //       return;
-      //     }
-      //     if (data.txhash) {
-      //       const txhash = data.txhash;
-      //       console.log(`=> this transaction's hash: ${txhash}`);
-      //       this.txData = data;
-      //       this.checkTxDialog = true;
-      //     } else {
-      //       console.log('=> transaction failed');
-      //     }
-      //   }
-      // });
     },
     sellFromBuyList(entry) {
       console.log(JSON.stringify(entry));
+    },
+    takeOrder(orderInfo) {
+      const callFunction = 'takeOrder';
+      const callArgs = JSON.stringify([orderInfo.orderId, orderInfo.amount]);
+      let value = orderInfo.price * orderInfo.amount;
+      value = new BigNumber(value.toString());
+      console.log(`=> value: ${value}`);
+      this.$nebPay.call(this.currentContract, value, callFunction, callArgs, {
+        listener: (data) => {
+          if (
+            JSON.stringify(data) === '"Error: Transaction rejected by user"'
+          ) {
+            console.log('=> transaction rejected');
+            return;
+          }
+          if (data.txhash) {
+            const txhash = data.txhash;
+            console.log(`=> this transaction's hash: ${txhash}`);
+            this.txData = data;
+            this.checkTxDialog = true;
+          } else {
+            console.log('=> transaction failed');
+          }
+        }
+      });
     },
     getSellOrders(_ids) {
       let pArray = [];
@@ -457,6 +462,7 @@ export default {
   mounted() {
     EventBus.$on('confirmTake', (orderInfo) => {
       console.log(`=> event got confirmTake ${JSON.stringify(orderInfo)}`);
+      this.takeOrder(orderInfo);
     });
   }
 };

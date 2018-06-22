@@ -43,7 +43,7 @@ var GlobalConfig = function(text) {
     this.current_price = new BigNumber(0);
     this.balance = new BigNumber(0);
     this.orderSeq = 0;
-    this.commission = 0.01;
+    this.commission = new BigNumber(100); // use div here 100 is 1% 50 is 2% etc
   }
 };
 
@@ -299,11 +299,9 @@ RMBntContract.prototype = {
       throw new Error('Sorry order must be live to take');
     }
     var orderBalance = new BigNumber(order.balance);
+    var orderAmount = new BigNumber(order.amount);
     var orderPrice = new BigNumber(order.price);
     var orderValue = amount.mul(orderPrice);
-    if (orderBalance.lt(orderValue)) {
-      throw new Error('Order only has ' + orderBalance + ' Wei left');
-    }
 
     var takerBalance = this.balances.get(from) || new BigNumber(0);
     var config = this.getConfig();
@@ -318,13 +316,21 @@ RMBntContract.prototype = {
             takerBalance
         );
       }
+      //make sure contract has enough balance to send to taker
+      if (orderBalance.lt(orderValue)) {
+        throw new Error('Order only has ' + orderBalance + ' Wei left');
+      }
       // deduct balance from order
       order.balance = orderBalance.sub(orderValue);
+      // deduct RMB amount from order
+      orderAmount = orderAmount.sub(amount);
       //charge comission here
-      var commission = orderValue.times(config.commission);
-      this._profit = this._profit.add(commission);
+      var commission = orderValue.div(config.commission);
+      var profit = new BigNumber(this._profit);
+      this._profit = profit.add(commission);
       //receive NAS
       var seller_proceed = orderValue.sub(commission);
+      seller_proceed = seller_proceed.floor();
       var result = Blockchain.transfer(from, seller_proceed);
       if (!result) {
         throw new Error('Take a buy: Receive NAS failed.');
@@ -333,6 +339,7 @@ RMBntContract.prototype = {
       this.transfer(order.maker, amount);
     } else if (order.type === '2') {
       //I'm buying RMBnt from the maker, send NAS to maker, receive RMBnt
+      //make sure taker is sending enough amount of NAS
       var _value = new BigNumber(Blockchain.transaction.value);
       if (_value.lt(orderValue)) {
         throw new Error(
@@ -343,17 +350,23 @@ RMBntContract.prototype = {
             orderValue
         );
       }
-      // deduct balance from order
-      order.balance = orderBalance.sub(orderValue);
       //charge comission here
-      var commission = orderValue.times(config.commission);
-      this._profit = this._profit.add(commission);
+      var commission = _value.div(config.commission);
+      var profit = new BigNumber(this._profit);
+      this._profit = profit.add(commission);
       //send NAS
       var seller_proceed = _value.sub(commission);
-      var result = Blockchain.transfer(order.maker, seller_proceed);
-      if (!result) {
-        throw new Error('Take a sell: Send NAS failed.');
+      seller_proceed = seller_proceed.floor();
+      if (seller_proceed.gt(new BigNumber(0))) {
+        var result = Blockchain.transfer(order.maker, seller_proceed);
+        if (!result) {
+          throw new Error('Take a sell: Send NAS failed.');
+        }
+      } else {
+        throw new Error('Take a sell: seller_proceed is 0 or less.');
       }
+      // deduct RMB amount from order
+      orderAmount = orderAmount.sub(amount);
       //taker receive RMBnt maker's RMBnt already deducted
       takerBalance = takerBalance.add(amount);
       this.balances.set(from, takerBalance);
@@ -363,23 +376,24 @@ RMBntContract.prototype = {
     }
 
     // if amount left is 0 mark contract as finished
-    if (order.balance == 0) {
+    if (orderAmount.lte(new BigNumber(0))) {
       order.status = '1';
     }
+    order.amount = orderAmount;
     // taker and maker get volume boost
     var taker = this.tradersDetail.get(from);
     if (!taker) {
       taker = new Trader();
-      var _allTraders = this.allTraders;
-      _allTraders.push(from);
-      this.allTraders = _allTraders;
+      var allTraders = this._allTraders;
+      allTraders.push(from);
+      this._allTraders = allTraders;
     }
     var maker = this.tradersDetail.get(order.maker);
     if (!maker) {
       maker = new Trader();
-      var _allTraders = this.allTraders;
-      _allTraders.push(order.maker);
-      this.allTraders = _allTraders;
+      var allTraders = this._allTraders;
+      allTraders.push(order.maker);
+      this._allTraders = allTraders;
     }
     var takerVolume = new BigNumber(taker.volume);
     var makerVolume = new BigNumber(maker.volume);
@@ -408,6 +422,7 @@ RMBntContract.prototype = {
     //I was buying RMBnt. refund my NAS
     if (order.type === '1') {
       //receive NAS
+      remainValue = remainValue.floor();
       var result = Blockchain.transfer(from, remainValue);
       if (!result) {
         throw new Error('Cancel: Receive NAS failed.');

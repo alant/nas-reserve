@@ -19,7 +19,7 @@ var GlobalConfig = function(text) {
     this.current_price = new BigNumber(0.025 * 10 ** 18);
     this.balance = new BigNumber(0);
     this.orderSeq = 0;
-    this.commission = 0.01;
+    this.commission = new BigNumber(100); // use div here 100 is 1% 50 is 2% etc
   }
 };
 
@@ -343,10 +343,11 @@ NRTContract.prototype = {
       //receive NAS
       //charge comission here, it's the only place we charge commission because when someone is selling their NRT the price should've gone up
       var config = this.getConfig();
-      var commission = amount.times(config.commission);
+      var commission = amount.div(config.commission);
       this._profit = this._profit.plus(commission);
       var amount = new BigNumber(order.balance);
       var seller_proceed = amount.minus(commission);
+      seller_proceed = seller_proceed.floor();
       var result = Blockchain.transfer(from, seller_proceed);
       if (!result) {
         throw new Error('Take a buy: Receive NAS failed.');
@@ -521,6 +522,7 @@ NRTContract.prototype = {
     var _amount = _totalAmount.div(_count);
     this._profit = this._profit.minus(_totalAmount);
     for (const [i, shareHolder] of allShareHolders.entries()) {
+      _amount = _amount.floor();
       var result = Blockchain.transfer(shareHolder, _amount);
       if (!result) {
         throw new Error(
