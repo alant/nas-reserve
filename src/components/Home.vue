@@ -19,12 +19,11 @@
         </v-flex>
       </v-layout>
     </v-slide-y-transition>
-    <check-tx v-model="checkTxDialog" />
+    <check-tx v-model="checkTxDialog" :TXData="txData" />
   </v-container>
 </template>
 
 <script>
-import EventBus from '../event-bus';
 import CheckTX from './CheckTX';
 
 export default {
@@ -35,7 +34,8 @@ export default {
   data() {
     return {
       price: 0,
-      checkTxDialog: false
+      checkTxDialog: false,
+      txData: null
     };
   },
   methods: {
@@ -58,7 +58,8 @@ export default {
           if (resp.execute_err.length > 0) {
             throw new Error(resp.execute_err);
           }
-          const result = JSON.parse(resp.result) / (10 ** 18);
+          const nasBase = 10 ** 18;
+          const result = JSON.parse(resp.result) / nasBase;
           if (!result) {
             throw new Error('访问合约API出错');
           }
@@ -67,32 +68,23 @@ export default {
     },
     buy() {
       console.log('==> buy buy buy');
-      this.$nebPay.call(
-        this.$contractAddr,
-        this.price,
-        'buyOneShare',
-        '[]',
-        {
-          listener: (data) => {
-            console.log(`==> data return: ${JSON.stringify(data)}`);
-            if (
-              JSON.stringify(data) === 'Error: Transaction rejected by user'
-            ) {
-              console.log('=> transaction rejected');
-              return;
-            }
-            if (data.txhash) {
-              const txhash = data.txhash;
-              console.log(`=> this transaction's hash: ${txhash}`);
-              EventBus.$emit('check', txhash);
-              //
-              this.checkTxDialog = true;
-            } else {
-              console.log('=> transaction failed');
-            }
+      this.$nebPay.call(this.$contractAddr, this.price, 'buyOneShare', '[]', {
+        listener: (data) => {
+          console.log(`==> data return: ${JSON.stringify(data)}`);
+          if (JSON.stringify(data) === 'Error: Transaction rejected by user') {
+            console.log('=> transaction rejected');
+            return;
+          }
+          if (data.txhash) {
+            const txhash = data.txhash;
+            console.log(`=> this transaction's hash: ${txhash}`);
+            this.txData = data;
+            this.checkTxDialog = true;
+          } else {
+            console.log('=> transaction failed');
           }
         }
-      );
+      });
     }
   },
   beforeMount() {
@@ -100,7 +92,7 @@ export default {
   }
 };
 </script>
-
+c
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h1,

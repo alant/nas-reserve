@@ -22,6 +22,7 @@ export default {
   name: 'CheckTX',
   props: ['value', 'TXData'],
   watch: {
+    // disable lint here because arrow function doesn't get this context
     /* eslint-disable */
     TXData: function(newVal, oldVal) {
       /* eslint-enable */

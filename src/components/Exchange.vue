@@ -91,12 +91,11 @@
         </v-data-table>
       </v-flex>
     </v-layout>
-    <check-tx v-model="checkTxDialog" :TXData="txData"/>
+    <check-tx v-model="checkTxDialog" :TXData="txData" />
   </v-container>
 </template>
 
 <script>
-// import EventBus from '../event-bus';
 import CheckTX from './CheckTX';
 
 export default {
@@ -179,7 +178,6 @@ export default {
             const txhash = data.txhash;
             console.log(`=> this transaction's hash: ${txhash}`);
             this.txData = data;
-            //
             this.checkTxDialog = true;
           } else {
             console.log('=> transaction failed');
