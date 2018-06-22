@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import Home from '@/components/Home';
 import Buy from '@/components/Buy';
 import Exchange from '@/components/Exchange';
+import MyAccount from '@/components/MyAccount';
 
 Vue.use(Router);
 export default new Router({
@@ -21,6 +22,11 @@ export default new Router({
       path: '/exchange',
       name: 'Exchange',
       component: Exchange
+    },
+    {
+      path: '/myaccount',
+      name: 'MyAccount',
+      component: MyAccount
     }
   ]
 });
