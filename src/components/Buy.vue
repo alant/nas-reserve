@@ -1,11 +1,28 @@
 <template>
-  <v-container fluid>
+  <v-container grid-list-md text-xs-center>
     <v-slide-y-transition mode="out-in">
-      <v-layout column align-center>
-        The price right now is: {{price}} NAS
-        <v-text-field v-model="tokenNumbers" type="number"
-           placeholder="0" label="tokens"/>
-        <v-btn color="success" v-on:click="buy">{{ $t('message.buyBtn') }}</v-btn>
+      <v-layout row wrap align-center justify-center>
+        <v-flex xs3>
+          <v-card justify-center height="200px">
+            <v-card-text class="px-0">
+              {{ $t('message.currentPriceInfo') }} {{price}} NAS
+            </v-card-text>
+              <v-layout row>
+                <v-flex xs3>
+                  <v-subheader>
+                    {{ $t("message.quantity") }}
+                  </v-subheader>
+                </v-flex>
+                <v-flex xs9>
+                  <v-subheader>
+                    <v-text-field v-model="tokenNumbers" type="number"
+                              placeholder="0"/>
+                  </v-subheader>
+                </v-flex>
+              </v-layout>
+            <v-btn color="success" v-on:click="buy">{{ $t('message.buyBtn') }}</v-btn>
+          </v-card>
+        </v-flex>
       </v-layout>
     </v-slide-y-transition>
   </v-container>

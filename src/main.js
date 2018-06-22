@@ -34,12 +34,13 @@ const messages = {
       buyCard: 'Buy',
       sellCard: 'Sell',
       price: 'Price',
-      quantity: 'Quantity',
+      quantity: 'Quantity:',
       failedTX: 'Transaction failed. Hash: ',
       failedMsg: ' Error Message is: ',
       playId: 'Player',
       amount: 'Amount',
-      time: 'time'
+      time: 'time',
+      currentPriceInfo: 'Current price is:'
     }
   },
   zh: {
@@ -62,12 +63,13 @@ const messages = {
       buyCard: '买进',
       sellCard: '卖出',
       price: '价格',
-      quantity: '数量',
+      quantity: '数量:',
       failedTX: '交易失败。哈希值：',
       failedMsg: ' 错误信息：',
       playId: '玩家',
       amount: '数量',
-      time: '时间'
+      time: '时间',
+      currentPriceInfo: '当前价格是:'
     }
   }
 };
