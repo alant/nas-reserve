@@ -77,8 +77,8 @@ var Order = function(text) {
     var obj = JSON.parse(text);
     this.id = obj.id;
     this.type = obj.type; //  1 is buy; 2 is sell
-    this.price = obj.price; // price in RMBnt / Wei
-    this.amount = obj.amount; // amount in Wei
+    this.price = obj.price; // price in  Wei / RMBnt
+    this.amount = obj.amount; // amount in RMBnt
     this.balance = obj.balance; // balance in Wei
     this.maker = obj.maker;
     this.taker = obj.taker;
@@ -256,16 +256,13 @@ RMBntContract.prototype = {
       //trying to sell RMBnt, hand over RMBnt
       //Must already own this much RMBnt
       var balance = this.balances.get(from);
-      var _valueCheck = amount.times(price);
-      if (!balance || balance.lt(new BigNumber(_valueCheck))) {
+      if (!balance || balance.lt(amount)) {
         throw new Error(
           'You need to own this much RMBnt before selling. Buy some on the exchange first.'
         );
       }
-      //Set contract balance in Wei
-      order.balance = amount;
       //deduct maker's RMBnt
-      var newBalance = balance.sub(_valueCheck);
+      var newBalance = balance.sub(amount);
       this.balances.set(from, newBalance);
 
       var sellIds = this._sellOrderIds;
@@ -295,53 +292,53 @@ RMBntContract.prototype = {
     }
     var orderBalance = new BigNumber(order.balance);
     var orderPrice = new BigNumber(order.price);
-    if (orderBalance.lt(amount)) {
+    var orderValue = amount.mul(orderPrice);
+    if (orderBalance.lt(orderValue)) {
       throw new Error('Order only has ' + orderBalance + ' Wei left');
     }
 
     var takerBalance = this.balances.get(from) || new BigNumber(0);
-    var curRMBnt = amount.times(orderPrice);
     var config = this.getConfig();
     //i'm selling RMBnt to maker, hand RMBnt to maker, receive NAS
     if (order.type === '1') {
       // make sure I have enough RMBnt
-      if (takerBalance.lt(curRMBnt)) {
+      if (takerBalance.lt(amount)) {
         throw new Error(
           'Not enough RMBnt to take this order. selling: ' +
-            curRMBnt +
+            amount +
             ' your balance: ' +
             takerBalance
         );
       }
       // deduct balance from order
-      order.balance = orderBalance.sub(amount);
+      order.balance = orderBalance.sub(orderValue);
       //charge comission here
-      var commission = amount.times(config.commission);
+      var commission = orderValue.times(config.commission);
       this._profit = this._profit.add(commission);
       //receive NAS
-      var seller_proceed = amount.sub(commission);
+      var seller_proceed = orderValue.sub(commission);
       var result = Blockchain.transfer(from, seller_proceed);
       if (!result) {
         throw new Error('Take a buy: Receive NAS failed.');
       }
       //maker receives RMBnt from taker
-      this.transfer(order.maker, curRMBnt);
+      this.transfer(order.maker, amount);
     } else if (order.type === '2') {
       //I'm buying RMBnt from the maker, send NAS to maker, receive RMBnt
       var _value = new BigNumber(Blockchain.transaction.value);
-      if (_value.lt(amount)) {
+      if (_value.lt(orderValue)) {
         throw new Error(
           'NAS paid too low. ' +
             'Paid: ' +
             _value +
             '; trying to take an order size: ' +
-            amount
+            orderValue
         );
       }
       // deduct balance from order
-      order.balance = orderBalance.sub(amount);
+      order.balance = orderBalance.sub(orderValue);
       //charge comission here
-      var commission = amount.times(config.commission);
+      var commission = orderValue.times(config.commission);
       this._profit = this._profit.add(commission);
       //send NAS
       var seller_proceed = _value.sub(commission);
@@ -350,9 +347,9 @@ RMBntContract.prototype = {
         throw new Error('Take a sell: Send NAS failed.');
       }
       //taker receive RMBnt maker's RMBnt already deducted
-      takerBalance = takerBalance.add(curRMBnt);
+      takerBalance = takerBalance.add(amount);
       this.balances.set(from, takerBalance);
-      this.transferEvent(true, order.maker, from, curRMBnt);
+      this.transferEvent(true, order.maker, from, amount);
     } else {
       throw new Error('Wrong order type. buy or sell allowed');
     }
@@ -369,7 +366,7 @@ RMBntContract.prototype = {
       _allTraders.push(from);
       this.allTraders = _allTraders;
     }
-    var maker = this.tradersDetail.get(order.maker) || new Trader();
+    var maker = this.tradersDetail.get(order.maker);
     if (!maker) {
       maker = new Trader();
       var _allTraders = this.allTraders;
@@ -378,8 +375,8 @@ RMBntContract.prototype = {
     }
     var takerVolume = new BigNumber(taker.volume);
     var makerVolume = new BigNumber(maker.volume);
-    takerVolume = takerVolume.add(amount);
-    makerVolume = makerVolume.add(amount);
+    takerVolume = takerVolume.add(orderValue);
+    makerVolume = makerVolume.add(orderValue);
     this.tradersDetail.put(from, taker);
     this.tradersDetail.put(order.maker, maker);
 
@@ -398,23 +395,23 @@ RMBntContract.prototype = {
     if (from !== order.maker) {
       throw new Error('Only the maker can cancel the order');
     }
-    var amount = new BigNumber(order.balance);
+    var remainValue = new BigNumber(order.balance);
     var orderPrice = new BigNumber(order.price);
     //I was buying RMBnt. refund my NAS
     if (order.type === '1') {
       //receive NAS
-      var result = Blockchain.transfer(from, amount);
+      var result = Blockchain.transfer(from, remainValue);
       if (!result) {
         throw new Error('Cancel: Receive NAS failed.');
       }
     } else if (order.type === 'sell') {
       // I was selling RMBnt, refund my RMBnt
       //receive NRT
-      var curRMBnt = amount.times(orderPrice);
+      var remainRMBnt = balance.div(orderPrice);
       var makerBalance = this.balances.get(from) || new BigNumber(0);
-      makerBalance.add(curRMBnt);
+      makerBalance.add(remainRMBnt);
       this.balances.set(from, makerBalance);
-      this.transferEvent(true, from, from, curRMBnt);
+      this.transferEvent(true, from, from, remainRMBnt);
     } else {
       throw new Error('Wrong order type. buy or sell allowed');
     }

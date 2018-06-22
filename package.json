@@ -13,6 +13,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "material-design-icons-iconfont": "^3.0.3",
     "nebpay": "0.0.6",
     "nebulas": "^0.5.2",

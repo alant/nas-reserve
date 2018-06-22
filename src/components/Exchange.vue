@@ -5,7 +5,7 @@
         <v-subheader class="fluid text-xs-right">{{ $t("message.selectCoin") }}: </v-subheader>
       </v-flex>
       <v-flex xs3>
-        <v-select :items="items" v-model="e1" label="Select" single-line></v-select>
+        <v-select :items="supportedTokens" v-model="selectedToken" label="Select" single-line />
       </v-flex>
     </v-layout>
     <v-layout row wrap justify-center>
@@ -26,7 +26,7 @@
             </v-flex>
             <v-flex xs6>
               <v-subheader>
-                <v-text-field v-model="currentPrice" type="number" placeholder="currentPrice" />
+                <v-text-field v-model="currentPrice" type="number" placeholder="1" />
               </v-subheader>
             </v-flex>
           </v-layout>
@@ -37,7 +37,18 @@
             </v-flex>
             <v-flex>
               <v-subheader>
-                <v-text-field v-model="buyNumbers" type="number" placeholder="currentPrice" />
+                <v-text-field v-model="buyNumbers" type="number" placeholder="1" />
+              </v-subheader>
+            </v-flex>
+          </v-layout>
+          <v-layout row>
+            <v-flex offset-xs2 xs4>
+              <v-subheader>{{ $t("message.total") }} (NAS):
+              </v-subheader>
+            </v-flex>
+            <v-flex xs6>
+              <v-subheader>
+                <v-text-field disabled v-model="totalNASBuy" type="number" />
               </v-subheader>
             </v-flex>
           </v-layout>
@@ -56,7 +67,7 @@
             </v-flex>
             <v-flex xs6>
               <v-subheader>
-                <v-text-field v-model="currentPrice" type="number" placeholder="currentPrice" />
+                <v-text-field v-model="currentPrice" type="number" placeholder="1" />
               </v-subheader>
             </v-flex>
           </v-layout>
@@ -67,7 +78,18 @@
             </v-flex>
             <v-flex xs6>
               <v-subheader>
-                <v-text-field v-model="sellNumbers" type="number" placeholder="0" />
+                <v-text-field v-model="sellNumbers" type="number" placeholder="1" />
+              </v-subheader>
+            </v-flex>
+          </v-layout>
+          <v-layout row>
+            <v-flex offset-xs2 xs4>
+              <v-subheader>{{ $t("message.total") }} (NAS):
+              </v-subheader>
+            </v-flex>
+            <v-flex xs6>
+              <v-subheader>
+                <v-text-field disabled v-model="totalNASSell" type="number" />
               </v-subheader>
             </v-flex>
           </v-layout>
@@ -116,10 +138,24 @@
 </template>
 
 <script>
+import axios from 'axios';
 import CheckTX from './CheckTX';
 
 export default {
   name: 'Exchange',
+  watch: {
+    // disable lint here because arrow function doesn't get this context
+    /* eslint-disable */
+    selectedToken: function(newVal, oldVal) {
+      /* eslint-enable */
+      console.log('=> selection changed: ', newVal, ' | was: ', oldVal);
+      if (newVal === '0') {
+        this.getPrice();
+      } else {
+        this.getCMPrice();
+      }
+    }
+  },
   components: {
     'check-tx': CheckTX
   },
@@ -128,8 +164,11 @@ export default {
       currentPrice: 0,
       sellNumbers: 1,
       buyNumbers: 1,
-      e1: 'NRT',
-      items: [{ text: 'NRT', value: 'NRT' }, { text: 'RMBnt', value: 'RMBnt' }],
+      selectedToken: '0',
+      supportedTokens: [
+        { text: 'NRT', value: '0' },
+        { text: 'RMBnt', value: '1' }
+      ],
       alert: true,
       buyHeaders: [
         {
@@ -172,8 +211,22 @@ export default {
         }
       ],
       checkTxDialog: false,
-      txData: null
+      txData: null,
+      contractAddresses: [
+        this.$contractAddr,
+        'n1r4yqovLXAPnHWvPJh9hPdWYPWwsjEKPa3'
+      ]
     };
+  },
+  computed: {
+    /* eslint-disable */
+    totalNASBuy: function() {
+      return this.currentPrice * this.buyNumbers;
+    },
+    totalNASSell: function() {
+      return this.currentPrice * this.sellNumbers;
+    }
+    /* eslint-enable */
   },
   methods: {
     buyToken() {
@@ -232,6 +285,27 @@ export default {
           }
           this.currentPrice = result;
         });
+    },
+    getCMPrice() {
+      this.loading = true;
+      axios
+        .get('https://api.coinmarketcap.com/v2/ticker/1908/?convert=cny')
+        .then(
+          (resp) => {
+            this.loading = false;
+            const RMBNAS = resp.data.data.quotes.CNY.price;
+            console.log(
+              `=> axio return: ${JSON.stringify(
+                resp.data.data.quotes.CNY.price
+              )}`
+            );
+            this.currentPrice = 1 / RMBNAS;
+          },
+          (err) => {
+            this.loading = false;
+            throw new Error(err);
+          }
+        );
     },
     buyFromSellList(entry) {
       console.log(JSON.stringify(entry));

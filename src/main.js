@@ -40,7 +40,8 @@ const messages = {
       playId: 'Player',
       amount: 'Amount',
       time: 'time',
-      currentPriceInfo: 'Current price is:'
+      currentPriceInfo: 'Current price is:',
+      total: 'Total:'
     }
   },
   zh: {
@@ -69,7 +70,8 @@ const messages = {
       playId: '玩家',
       amount: '数量',
       time: '时间',
-      currentPriceInfo: '当前价格是:'
+      currentPriceInfo: '当前价格是:',
+      total: '金额:'
     }
   }
 };
