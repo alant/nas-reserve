@@ -449,6 +449,11 @@ NRTContract.prototype = {
     return result;
   },
 
+  getMyOrders: function(from) {
+    var result = this.myOrders.get(from);
+    return result;
+  },
+
   getOrderSeq: function() {
     var config = this.getConfig();
     return config.orderSeq;

@@ -124,6 +124,14 @@ var RMBntContract = function() {
         return o.toString(10);
       }
     },
+    _config: {
+      parse: function(text) {
+        return new GlobalConfig(text);
+      },
+      stringify: function(o) {
+        return o.toString();
+      }
+    },
     _allTraders: {
       parse: function(value) {
         return JSON.parse(value);
@@ -427,6 +435,16 @@ RMBntContract.prototype = {
 
   getSellOrderIds: function() {
     return this._sellOrderIds;
+  },
+
+  getOrderDetail: function(_id) {
+    const result = this.orders.get(_id);
+    return result;
+  },
+
+  getMyOrders: function(from) {
+    var result = this.myOrders.get(from);
+    return result;
   },
 
   getOrderSeq: function() {

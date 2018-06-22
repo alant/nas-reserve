@@ -151,9 +151,12 @@ export default {
       console.log('=> selection changed: ', newVal, ' | was: ', oldVal);
       if (newVal === '0') {
         this.getPrice();
+        this.currentContract = this.contractAddresses[0];
       } else {
         this.getCMPrice();
+        this.currentContract = this.contractAddresses[1];
       }
+      this.getOrders();
     }
   },
   components: {
@@ -214,8 +217,9 @@ export default {
       txData: null,
       contractAddresses: [
         this.$contractAddr,
-        'n1r4yqovLXAPnHWvPJh9hPdWYPWwsjEKPa3'
-      ]
+        'n1tjSqaY3zpUHtfLvcVsC3S5uTgCvD6skJR'
+      ],
+      currentContract: this.$contractAddr
     };
   },
   computed: {
@@ -236,10 +240,17 @@ export default {
     },
     sellToken() {
       console.log(`Sell ${this.sellNumbers} tokens is called.`);
-      const value = this.$Unit.nasToBasic(this.currentPrice);
       const callFunction = 'newOrder';
-      const callArgs = JSON.stringify(['2', value]);
-      this.$nebPay.call(this.$contractAddr, 0, callFunction, callArgs, {
+      let callArgs;
+      const type = '2';
+      const price = this.$Unit.nasToBasic(this.currentPrice);
+      if (this.selectedToken === '0') {
+        callArgs = JSON.stringify([type, price]);
+      } else {
+        const amount = this.sellNumbers;
+        callArgs = JSON.stringify([type, amount, price]);
+      }
+      this.$nebPay.call(this.currentContract, 0, callFunction, callArgs, {
         listener: (data) => {
           if (
             JSON.stringify(data) === '"Error: Transaction rejected by user"'
@@ -322,7 +333,7 @@ export default {
         };
         return this.$neb.api.call(
           this.$account.getAddressString(),
-          this.$contractAddr,
+          this.currentContract,
           0,
           '0',
           this.$gasPrice,
@@ -339,7 +350,8 @@ export default {
           const tmp = JSON.parse(results[i].result);
           const entry = {};
           entry.playId = `Player#${tmp.id}`;
-          entry.price = tmp.price / (10 ** 18);
+          const base = 10 ** 18;
+          entry.price = tmp.price / base;
           entry.amount = 10;
           entry.time = new Date(tmp.timeStamp * 1000).toISOString();
           if (tmp.type === '1') {
@@ -362,7 +374,7 @@ export default {
       this.$neb.api
         .call(
           this.$account.getAddressString(),
-          this.$contractAddr,
+          this.currentContract,
           0,
           '0',
           this.$gasPrice,
