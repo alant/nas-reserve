@@ -84,6 +84,12 @@
             <td class="text-xs-right">{{ props.item.amount }}</td>
             <td class="text-xs-right">{{ props.item.price }}</td>
             <td class="text-xs-right">{{ props.item.time }}</td>
+            <td class="justify-center">
+              <v-btn icon class="mx-0" @click="sellFromBuyList(props.item)">
+                 {{ $t("message.sellCard") }}
+                 <v-icon dark right>check_circle</v-icon>
+              </v-btn>
+            </td>
           </template>
         </v-data-table>
       </v-flex>
@@ -95,6 +101,12 @@
             <td class="text-xs-right">{{ props.item.amount }}</td>
             <td class="text-xs-right">{{ props.item.price }}</td>
             <td class="text-xs-right">{{ props.item.time }}</td>
+            <td class="justify-center">
+              <v-btn icon class="mx-0" @click="buyFromSellList(props.item)">
+                 {{ $t("message.buyCard") }}
+                 <v-icon dark right>check_circle</v-icon>
+              </v-btn>
+            </td>
           </template>
         </v-data-table>
       </v-flex>
@@ -116,8 +128,6 @@ export default {
       currentPrice: 0,
       sellNumbers: 1,
       buyNumbers: 1,
-      sellPrice: 0.12,
-      buyPrice: 0.13,
       e1: 'NRT',
       items: [{ text: 'NRT', value: 'NRT' }, { text: 'RMBnt', value: 'RMBnt' }],
       alert: true,
@@ -130,7 +140,8 @@ export default {
         },
         { text: 'Amount', value: 'amount' },
         { text: 'Price (NAS)', value: 'price' },
-        { text: 'Time', value: 'time' }
+        { text: 'Time', value: 'time' },
+        { text: '', value: 'playId', sortable: false }
       ],
       buyOrders: [
         {
@@ -149,7 +160,8 @@ export default {
         },
         { text: 'Amount', value: 'amount' },
         { text: 'Price (NAS)', value: 'price' },
-        { text: 'Time', value: 'time' }
+        { text: 'Time', value: 'time' },
+        { text: '', value: 'playId', sortable: false }
       ],
       sellOrders: [
         {
@@ -220,6 +232,12 @@ export default {
           }
           this.currentPrice = result;
         });
+    },
+    buyFromSellList(entry) {
+      console.log(JSON.stringify(entry));
+    },
+    sellFromBuyList(entry) {
+      console.log(JSON.stringify(entry));
     }
   },
   beforeMount() {
