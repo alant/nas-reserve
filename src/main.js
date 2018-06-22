@@ -25,12 +25,13 @@ const messages = {
       about: 'About',
       buyBtn: 'Buy Now',
       selectCoin: 'Select the coin to trade',
-      nasrdesc: `NAS reserve is a reserve bank run by its constituents. 
+      nasrdesc: `NAS reserve is a reserve bank run by its constituents.
                 There are 500 membership avaiable. `,
       pricenow: 'The price of a NRT right now is',
       confirming: 'Confirm Transaction',
       confirmingText: 'Checking transaction hash on blockchain...',
       successTx: 'Transaction confirmed. Hash: ',
+      buyCard: 'Buy',
       sellCard: 'Sell',
       price: 'Price',
       quantity: 'Quantity',
@@ -47,7 +48,7 @@ const messages = {
       about: '关于',
       buyBtn: '购买 NRT',
       selectCoin: '选择交易的币种',
-      nasrdesc: `星云央行是一个由央行成员运作的央行。 负责发行稳定币。  
+      nasrdesc: `星云央行是一个由央行成员运作的央行。 负责发行稳定币。
                 成员的有效性由 NRT (NAS Reserve Token) 来控制。 总发行量为 500 个。 起始价格为 0.025 NAS。<br>
                 NRT 的通货膨胀机制为每增加一个央行成员， NRT 价格上浮 5%。
                 NRT 持有者将共同制定央行发币和回购的数额等运营策略。并获得交易所利润的回馈。`,
@@ -55,6 +56,7 @@ const messages = {
       confirming: '交易确认',
       confirmingText: '正在查询交易打包状态...',
       successTX: '交易已成功打包。哈希值：',
+      buyCard: '买进',
       sellCard: '卖出',
       price: '价格',
       quantity: '数量',

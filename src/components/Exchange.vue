@@ -18,10 +18,10 @@
     <v-layout row wrap>
       <v-flex xs6>
         <v-card justify-start>
-          <v-card-text class="px-0">Buy</v-card-text>
+          <v-card-text class="px-0">{{$t("message.buyCard")}}</v-card-text>
           <v-layout row>
-            <v-flex offset-xs3 xs3>
-              <v-subheader>price:
+            <v-flex offset-xs2 xs4>
+              <v-subheader>{{ $t("message.price") }} (NAS):
               </v-subheader>
             </v-flex>
             <v-flex xs6>
@@ -31,12 +31,18 @@
             </v-flex>
           </v-layout>
           <v-layout row>
+            <v-flex offset-xs2 xs4>
+              <v-subheader>{{ $t("message.quantity") }}
+              </v-subheader>
+            </v-flex>
             <v-flex>
-              <v-text-field v-model="buyNumbers" type="number" placeholder="currentPrice" />
+              <v-subheader>
+                <v-text-field v-model="buyNumbers" type="number" placeholder="currentPrice" />
+              </v-subheader>
             </v-flex>
           </v-layout>
           <v-btn color="green" v-on:click="buyToken">
-            buy
+            {{$t("message.buyCard")}}
           </v-btn>
         </v-card>
       </v-flex>
@@ -60,7 +66,9 @@
               </v-subheader>
             </v-flex>
             <v-flex xs6>
-              <v-text-field v-model="sellNumbers" type="number" placeholder="0" />
+              <v-subheader>
+                <v-text-field v-model="sellNumbers" type="number" placeholder="0" />
+              </v-subheader>
             </v-flex>
           </v-layout>
           <v-btn color="red" v-on:click="sellToken">
