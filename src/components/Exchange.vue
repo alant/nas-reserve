@@ -253,20 +253,29 @@ export default {
       console.log(
         `Buy ${this.buyNumbers} tokens is called. ${this.e1} is selected`
       );
+      const value = new BigNumber(this.totalNASBuy.toString());
+      this.newOrder('1', value);
     },
     sellToken() {
       console.log(`Sell ${this.sellNumbers} tokens is called.`);
+      this.newOrder('2', 0);
+    },
+    newOrder(type, value) {
       const callFunction = 'newOrder';
       let callArgs;
-      const type = '2';
       const price = this.$Unit.nasToBasic(this.currentPrice);
       if (this.selectedToken === '0') {
         callArgs = JSON.stringify([type, price]);
       } else {
-        const amount = this.sellNumbers;
+        let amount;
+        if (type === '1') {
+          amount = this.buyNumbers;
+        } else {
+          amount = this.sellNumbers;
+        }
         callArgs = JSON.stringify([type, amount, price]);
       }
-      this.$nebPay.call(this.currentContract, 0, callFunction, callArgs, {
+      this.$nebPay.call(this.currentContract, value, callFunction, callArgs, {
         listener: (data) => {
           if (
             JSON.stringify(data) === '"Error: Transaction rejected by user"'
@@ -337,8 +346,8 @@ export default {
     buyFromSellList(entry) {
       console.log(`==>buying: ${JSON.stringify(entry)}`);
       if (this.selectedToken === '0') {
-        // callArgs = JSON.stringify([entry.orderId]);
-        // value = entry.price;
+        const callArgs = JSON.stringify([entry.orderId]);
+        this.takeOrder(entry, callArgs);
       } else {
         this.curOrder = entry;
         if (this.curOrder) {
@@ -347,13 +356,33 @@ export default {
       }
     },
     sellFromBuyList(entry) {
-      console.log(JSON.stringify(entry));
+      console.log(`==>selling: ${JSON.stringify(entry)}`);
+      if (this.selectedToken === '0') {
+        const callArgs = JSON.stringify([entry.orderId]);
+        this.takeOrder(entry, callArgs);
+      } else {
+        this.curOrder = entry;
+        if (this.curOrder) {
+          this.orderDialog = true;
+        }
+      }
     },
-    takeOrder(orderInfo) {
+    takeOrder(orderInfo, _callArgs) {
       const callFunction = 'takeOrder';
-      const callArgs = JSON.stringify([orderInfo.orderId, orderInfo.amount]);
-      let value = orderInfo.price * orderInfo.amount;
-      value = new BigNumber(value.toString());
+      let callArgs;
+      if (!_callArgs) {
+        callArgs = JSON.stringify([orderInfo.orderId, orderInfo.amount]);
+      } else {
+        callArgs = _callArgs;
+      }
+      // if taking a buy order I'm selling NRC20 i.e. value = 0
+      let value = 0;
+      if (orderInfo.type === '1') {
+        value = 0;
+      } else {
+        value = orderInfo.price * orderInfo.amount;
+        value = new BigNumber(value.toString());
+      }
       console.log(`=> value: ${value}`);
       this.$nebPay.call(this.currentContract, value, callFunction, callArgs, {
         listener: (data) => {
@@ -374,7 +403,7 @@ export default {
         }
       });
     },
-    getSellOrders(_ids) {
+    getOrdersDetail(_ids, _type) {
       let pArray = [];
       pArray = _ids.map((id) => {
         const call = {
@@ -421,12 +450,13 @@ export default {
             console.log('unexpected type');
           }
         }
-        this.buyOrders = buyList;
-        this.sellOrders = sellList;
+        if (_type === '1') this.buyOrders = buyList;
+        if (_type === '2') this.sellOrders = sellList;
       });
     },
     getOrders() {
-      const call = {
+      // sell orders
+      let call = {
         function: 'getSellOrderIds',
         args: '[]'
       };
@@ -450,7 +480,34 @@ export default {
           }
           console.log(`=> sellOrderids: ${result}`);
           this.sellOrderIds = result;
-          this.getSellOrders(result);
+          this.getOrdersDetail(result, '2');
+        });
+      // buy orders
+      call = {
+        function: 'getBuyOrderIds',
+        args: '[]'
+      };
+      this.$neb.api
+        .call(
+          this.$account.getAddressString(),
+          this.currentContract,
+          0,
+          '0',
+          this.$gasPrice,
+          this.$gasLimit,
+          call
+        )
+        .then((resp) => {
+          if (resp.execute_err.length > 0) {
+            throw new Error(resp.execute_err);
+          }
+          const result = JSON.parse(resp.result);
+          if (!result) {
+            throw new Error('访问合约API出错');
+          }
+          console.log(`=> buyOrderids: ${result}`);
+          this.buyOrderIds = result;
+          this.getOrdersDetail(result, '1');
         });
     }
   },
