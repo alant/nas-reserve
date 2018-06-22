@@ -77,7 +77,7 @@
         </v-card>
       </v-flex>
       <v-flex xs6>
-        <v-subheader>Buy </v-subheader>
+        <v-subheader> {{ $t("message.buyCard") }}  </v-subheader>
         <v-data-table :headers="buyHeaders" :items="buyOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
@@ -94,7 +94,7 @@
         </v-data-table>
       </v-flex>
       <v-flex xs6>
-        <v-subheader>Sell </v-subheader>
+        <v-subheader> {{ $t("message.sellCard") }} </v-subheader>
         <v-data-table :headers="sellHeaders" :items="sellOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
@@ -133,14 +133,14 @@ export default {
       alert: true,
       buyHeaders: [
         {
-          text: 'Player',
+          text: this.$t('message.playId'),
           align: 'left',
           sortable: false,
           value: 'playId'
         },
-        { text: 'Amount', value: 'amount' },
-        { text: 'Price (NAS)', value: 'price' },
-        { text: 'Time', value: 'time' },
+        { text: this.$t('message.amount'), value: 'amount' },
+        { text: this.$t('message.price'), value: 'price' },
+        { text: this.$t('message.time'), value: 'time' },
         { text: '', value: 'playId', sortable: false }
       ],
       buyOrders: [
@@ -153,14 +153,14 @@ export default {
       ],
       sellHeaders: [
         {
-          text: 'Player',
+          text: this.$t('message.playId'),
           align: 'left',
           sortable: false,
           value: 'playId'
         },
-        { text: 'Amount', value: 'amount' },
-        { text: 'Price (NAS)', value: 'price' },
-        { text: 'Time', value: 'time' },
+        { text: this.$t('message.amount'), value: 'amount' },
+        { text: this.$t('message.price'), value: 'price' },
+        { text: this.$t('message.time'), value: 'time' },
         { text: '', value: 'playId', sortable: false }
       ],
       sellOrders: [

@@ -36,7 +36,10 @@ const messages = {
       price: 'Price',
       quantity: 'Quantity',
       failedTX: 'Transaction failed. Hash: ',
-      failedMsg: ' Error Message is: '
+      failedMsg: ' Error Message is: ',
+      playId: 'Player',
+      amount: 'Amount',
+      time: 'time'
     }
   },
   zh: {
@@ -61,7 +64,10 @@ const messages = {
       price: '价格',
       quantity: '数量',
       failedTX: '交易失败。哈希值：',
-      failedMsg: ' 错误信息：'
+      failedMsg: ' 错误信息：',
+      playId: '玩家',
+      amount: '数量',
+      time: '时间'
     }
   }
 };
