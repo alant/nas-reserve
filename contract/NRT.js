@@ -399,7 +399,7 @@ NRTContract.prototype = {
 
     // mark contract as finished
     order.status = '1';
-    this.order.put(_id, order);
+    this.orders.put(_id, order);
   },
 
   cancelOrder: function(_id) {
@@ -433,7 +433,7 @@ NRTContract.prototype = {
 
     // mark contract as canceled
     order.status = '2';
-    this.order.put(_id, order);
+    this.orders.put(_id, order);
   },
 
   getBuyOrderIds: function() {

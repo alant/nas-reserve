@@ -134,6 +134,20 @@
       </v-flex>
     </v-layout>
     <check-tx v-model="checkTxDialog" :TXData="txData" />
+    <v-dialog v-model="orderModal" max-width="290">
+      <v-card>
+        <v-card-title class="headline">Use Google's location service?</v-card-title>
+        <v-card-text>
+          Let Google help apps determine location.
+          This means sending anonymous location data to Google, even when no apps are running.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" flat="flat" @click.native="dialog = false">Disagree</v-btn>
+          <v-btn color="green darken-1" flat="flat" @click.native="dialog = false">Agree</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -188,6 +202,8 @@ export default {
       buyOrders: [
         {
           playId: 'Player #411',
+          playerAddr: 'n1b...',
+          orderId: 0,
           amount: 100,
           price: 1.59,
           time: '6/20/2018, 9:05:00 PM'
@@ -208,6 +224,8 @@ export default {
       sellOrders: [
         {
           playId: 'Play #511',
+          playerAddr: 'n1b...',
+          orderId: 0,
           amount: 200,
           price: 0.11,
           time: '6/18/2018, 5:00:00 PM'
@@ -217,9 +235,10 @@ export default {
       txData: null,
       contractAddresses: [
         this.$contractAddr,
-        'n1tjSqaY3zpUHtfLvcVsC3S5uTgCvD6skJR'
+        'n1yY82jMEviUiAFj6cE2xt1oMLELf2Vpx4F'
       ],
-      currentContract: this.$contractAddr
+      currentContract: this.$contractAddr,
+      orderModal: false
     };
   },
   computed: {
@@ -319,7 +338,33 @@ export default {
         );
     },
     buyFromSellList(entry) {
-      console.log(JSON.stringify(entry));
+      console.log(`==>buying: ${JSON.stringify(entry)}`);
+      // this.orderModal = true;
+      const callFunction = 'takeOrder';
+      let callArgs;
+      let value;
+      if (this.selectedToken === '0') {
+        callArgs = JSON.stringify([entry.orderId]);
+        value = entry.price;
+      }
+      this.$nebPay.call(this.currentContract, value, callFunction, callArgs, {
+        listener: (data) => {
+          if (
+            JSON.stringify(data) === '"Error: Transaction rejected by user"'
+          ) {
+            console.log('=> transaction rejected');
+            return;
+          }
+          if (data.txhash) {
+            const txhash = data.txhash;
+            console.log(`=> this transaction's hash: ${txhash}`);
+            this.txData = data;
+            this.checkTxDialog = true;
+          } else {
+            console.log('=> transaction failed');
+          }
+        }
+      });
     },
     sellFromBuyList(entry) {
       console.log(JSON.stringify(entry));
@@ -349,10 +394,18 @@ export default {
         for (let i = 0; i < results.length; i += 1) {
           const tmp = JSON.parse(results[i].result);
           const entry = {};
-          entry.playId = `Player#${tmp.id}`;
+          entry.playId = `${tmp.maker.substring(0, 3)}...${tmp.maker.substr(
+            tmp.maker.length - 3
+          )}`;
+          entry.playerAddr = tmp.maker;
+          entry.orderId = tmp.id;
           const base = 10 ** 18;
           entry.price = tmp.price / base;
-          entry.amount = 10;
+          if (this.selectedToken === '0') {
+            entry.amount = 1;
+          } else {
+            entry.amount = tmp.amount;
+          }
           entry.time = new Date(tmp.timeStamp * 1000).toISOString();
           if (tmp.type === '1') {
             buyList.push(entry);

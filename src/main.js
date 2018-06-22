@@ -107,7 +107,7 @@ const testAccount1 = new Wallet.Account(
 const neb = new Wallet.Neb();
 const nebPay = new NebPay();
 neb.setRequest(new HttpRequest('https://testnet.nebulas.io'));
-const toAddress = 'n1jQ3mrdSp1BZ2m1yAAR3K988PncrGXBseU';
+const toAddress = 'n1mx4dXSXu48Jm4btHi2rETcz11hEyPWcBQ';
 
 const gasLimit = 200000;
 const gasPrice = 1000000;

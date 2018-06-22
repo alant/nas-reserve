@@ -388,7 +388,7 @@ RMBntContract.prototype = {
     this.tradersDetail.put(from, taker);
     this.tradersDetail.put(order.maker, maker);
 
-    this.order.put(_id, order);
+    this.orders.put(_id, order);
   },
 
   cancelOrder: function(_id) {
@@ -426,7 +426,7 @@ RMBntContract.prototype = {
 
     // mark contract as canceled
     order.status = '2';
-    this.order.put(_id, order);
+    this.orders.put(_id, order);
   },
 
   getBuyOrderIds: function() {
