@@ -43,7 +43,9 @@ const messages = {
       currentPriceInfo: 'Current price is:',
       total: 'Total:',
       okBtn: 'OK',
-      cancelBtn: 'CANCEL'
+      cancelBtn: 'CANCEL',
+      myAccount: 'My Account',
+      myAccountBalance: 'Account balance:'
     }
   },
   zh: {
@@ -75,7 +77,9 @@ const messages = {
       currentPriceInfo: '当前价格是:',
       total: '金额:',
       okBtn: '确认',
-      cancelBtn: '取消'
+      cancelBtn: '取消',
+      myAccount: '我的账户',
+      myAccountBalance: '账户余额:'
     }
   }
 };

@@ -8,6 +8,9 @@
         <v-list-tile to="/exchange">
           <v-list-tile-content>{{ $t('message.exchange') }}</v-list-tile-content>
         </v-list-tile>
+        <v-list-tile to="/myaccount">
+          <v-list-tile-content>{{ $t('message.MyAccount') }}</v-list-tile-content>
+        </v-list-tile>
         <v-list-tile to="/about">
           <v-list-tile-content>{{ $t('message.about') }}</v-list-tile-content>
         </v-list-tile>
@@ -35,6 +38,9 @@
         </v-btn>
         <v-btn flat to="/exchange">
           {{ $t('message.exchange') }}
+        </v-btn>
+        <v-btn flat to="/myaccount">
+          {{ $t('message.myAccount') }}
         </v-btn>
         <v-btn flat to="/about">
           {{ $t('message.about') }}
