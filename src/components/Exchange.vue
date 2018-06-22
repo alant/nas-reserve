@@ -77,7 +77,7 @@
         </v-card>
       </v-flex>
       <v-flex xs6>
-        <v-subheader> {{ $t("message.buyCard") }}  </v-subheader>
+        <v-subheader> {{ $t("message.buyCard") }} </v-subheader>
         <v-data-table :headers="buyHeaders" :items="buyOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
@@ -86,8 +86,8 @@
             <td class="text-xs-right">{{ props.item.time }}</td>
             <td class="justify-center">
               <v-btn icon class="mx-0" @click="sellFromBuyList(props.item)">
-                 {{ $t("message.sellCard") }}
-                 <v-icon dark right>check_circle</v-icon>
+                {{ $t("message.sellCard") }}
+                <v-icon dark right>check_circle</v-icon>
               </v-btn>
             </td>
           </template>
@@ -103,8 +103,8 @@
             <td class="text-xs-right">{{ props.item.time }}</td>
             <td class="justify-center">
               <v-btn icon class="mx-0" @click="buyFromSellList(props.item)">
-                 {{ $t("message.buyCard") }}
-                 <v-icon dark right>check_circle</v-icon>
+                {{ $t("message.buyCard") }}
+                <v-icon dark right>check_circle</v-icon>
               </v-btn>
             </td>
           </template>
@@ -238,11 +238,62 @@ export default {
     },
     sellFromBuyList(entry) {
       console.log(JSON.stringify(entry));
+    },
+    getSellOrders(_ids) {
+      let pArray = [];
+      pArray = _ids.map((id) => {
+        const call = {
+          function: 'getOrderDetail',
+          args: JSON.stringify([id])
+        };
+        return this.$neb.api.call(
+          this.$account.getAddressString(),
+          this.$contractAddr,
+          0,
+          '0',
+          this.$gasPrice,
+          this.$gasLimit,
+          call
+        );
+      });
+      const promises = Promise.all(pArray);
+      promises.then((results) => {
+        console.log(`==>promiseall: ${JSON.stringify(results)}`);
+      });
+    },
+    getOrders() {
+      const call = {
+        function: 'getSellOrderIds',
+        args: '[]'
+      };
+      this.$neb.api
+        .call(
+          this.$account.getAddressString(),
+          this.$contractAddr,
+          0,
+          '0',
+          this.$gasPrice,
+          this.$gasLimit,
+          call
+        )
+        .then((resp) => {
+          if (resp.execute_err.length > 0) {
+            throw new Error(resp.execute_err);
+          }
+          const result = JSON.parse(resp.result);
+          if (!result) {
+            throw new Error('访问合约API出错');
+          }
+          console.log(`=> sellOrderids: ${result}`);
+          this.sellOrderIds = result;
+          this.getSellOrders(result);
+        });
     }
   },
   beforeMount() {
     console.log('=> exchange beforeMOunt');
     this.getPrice();
+    this.getOrders();
   }
 };
 </script>

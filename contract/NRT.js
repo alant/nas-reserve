@@ -439,9 +439,16 @@ NRTContract.prototype = {
   getBuyOrderIds: function() {
     return this._buyOrderIds;
   },
+
   getSellOrderIds: function() {
     return this._sellOrderIds;
   },
+
+  getOrderDetail: function(_id) {
+    const result = this.orders.get(_id);
+    return result;
+  },
+
   getOrderSeq: function() {
     var config = this.getConfig();
     return config.orderSeq;

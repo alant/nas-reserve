@@ -37,9 +37,7 @@ export default {
     };
   },
   methods: {
-    /* eslint-disable */
-    // check Transaction triggered by global event bus 'check' event
-    checkTransaction: function(seq, hash) {
+    checkTransaction(seq, hash) {
       return new Promise((resolve, reject) => {
         console.log(`==>checkTransaction #: ${seq}`);
         this.$neb.api
@@ -61,7 +59,7 @@ export default {
               // Vue.prototype.$myAccountAddr = resp.from;
               // Vue.localStorage.set('from', resp.from);
               // console.log('transaction succeeded: ');
-              this.confirmMsg = this.$t('message.successTx') + hash;
+              this.confirmMsg = this.$t('message.successTX') + hash;
               // EventBus.$emit('txsuccess');
               resolve(true);
             }
@@ -73,13 +71,13 @@ export default {
           });
       });
     },
-    timeout: function(ms) {
+    timeout(ms) {
       return new Promise((resolve) => {
         setTimeout(resolve, ms);
       });
     },
 
-    tryCheckTx: function(maxTry, hash) {
+    tryCheckTx(maxTry, hash) {
       return new Promise(async (resolve) => {
         /* eslint-disable no-await-in-loop */
         for (let i = 0; i < maxTry; i += 1) {
@@ -94,6 +92,5 @@ export default {
       });
     }
   }
-  /* eslint-enable */
 };
 </script>
