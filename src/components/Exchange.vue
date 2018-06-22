@@ -333,6 +333,25 @@ export default {
       const promises = Promise.all(pArray);
       promises.then((results) => {
         console.log(`==>promiseall: ${JSON.stringify(results)}`);
+        const buyList = [];
+        const sellList = [];
+        for (let i = 0; i < results.length; i += 1) {
+          const tmp = JSON.parse(results[i].result);
+          const entry = {};
+          entry.playId = `Player#${tmp.id}`;
+          entry.price = tmp.price / (10 ** 18);
+          entry.amount = 10;
+          entry.time = new Date(tmp.timeStamp * 1000).toISOString();
+          if (tmp.type === '1') {
+            buyList.push(entry);
+          } else if (tmp.type === '2') {
+            sellList.push(entry);
+          } else {
+            console.log('unexpected type');
+          }
+        }
+        this.buyOrders = buyList;
+        this.sellOrders = sellList;
       });
     },
     getOrders() {
