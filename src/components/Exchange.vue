@@ -231,7 +231,7 @@ export default {
       txData: null,
       contractAddresses: [
         this.$contractAddr,
-        'n1jy7E4uTgyw5huAGjwSLmkecxfaQwCEHh8'
+        'n21fghvdRE2bMAAUyExRhkQGy6TvZtgUNfb'
       ],
       currentContract: this.$contractAddr,
       orderDialog: false,
