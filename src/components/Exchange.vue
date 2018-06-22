@@ -134,26 +134,15 @@
       </v-flex>
     </v-layout>
     <check-tx v-model="checkTxDialog" :TXData="txData" />
-    <v-dialog v-model="orderModal" max-width="290">
-      <v-card>
-        <v-card-title class="headline">Use Google's location service?</v-card-title>
-        <v-card-text>
-          Let Google help apps determine location.
-          This means sending anonymous location data to Google, even when no apps are running.
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="green darken-1" flat="flat" @click.native="dialog = false">Disagree</v-btn>
-          <v-btn color="green darken-1" flat="flat" @click.native="dialog = false">Agree</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <current-order v-model="orderDialog" :OrderInfo="curOrder" />
   </v-container>
 </template>
 
 <script>
 import axios from 'axios';
 import CheckTX from './CheckTX';
+import CurrentOrder from './CurrentOrder';
+import EventBus from '../event-bus';
 
 export default {
   name: 'Exchange',
@@ -161,7 +150,6 @@ export default {
     // disable lint here because arrow function doesn't get this context
     /* eslint-disable */
     selectedToken: function(newVal, oldVal) {
-      /* eslint-enable */
       console.log('=> selection changed: ', newVal, ' | was: ', oldVal);
       if (newVal === '0') {
         this.getPrice();
@@ -171,10 +159,15 @@ export default {
         this.currentContract = this.contractAddresses[1];
       }
       this.getOrders();
+    },
+    curOrder: function(newVal, oldVal) {
+      this.orderDialog = true;
     }
+    /* eslint-enable */
   },
   components: {
-    'check-tx': CheckTX
+    'check-tx': CheckTX,
+    'current-order': CurrentOrder
   },
   data() {
     return {
@@ -206,7 +199,8 @@ export default {
           orderId: 0,
           amount: 100,
           price: 1.59,
-          time: '6/20/2018, 9:05:00 PM'
+          time: '6/20/2018, 9:05:00 PM',
+          type: ''
         }
       ],
       sellHeaders: [
@@ -228,7 +222,8 @@ export default {
           orderId: 0,
           amount: 200,
           price: 0.11,
-          time: '6/18/2018, 5:00:00 PM'
+          time: '6/18/2018, 5:00:00 PM',
+          type: ''
         }
       ],
       checkTxDialog: false,
@@ -238,7 +233,8 @@ export default {
         'n1yY82jMEviUiAFj6cE2xt1oMLELf2Vpx4F'
       ],
       currentContract: this.$contractAddr,
-      orderModal: false
+      orderDialog: false,
+      curOrder: null
     };
   },
   computed: {
@@ -339,32 +335,36 @@ export default {
     },
     buyFromSellList(entry) {
       console.log(`==>buying: ${JSON.stringify(entry)}`);
-      // this.orderModal = true;
-      const callFunction = 'takeOrder';
-      let callArgs;
-      let value;
+      // const callFunction = 'takeOrder';
+      // let callArgs;
+      // let value;
       if (this.selectedToken === '0') {
-        callArgs = JSON.stringify([entry.orderId]);
-        value = entry.price;
-      }
-      this.$nebPay.call(this.currentContract, value, callFunction, callArgs, {
-        listener: (data) => {
-          if (
-            JSON.stringify(data) === '"Error: Transaction rejected by user"'
-          ) {
-            console.log('=> transaction rejected');
-            return;
-          }
-          if (data.txhash) {
-            const txhash = data.txhash;
-            console.log(`=> this transaction's hash: ${txhash}`);
-            this.txData = data;
-            this.checkTxDialog = true;
-          } else {
-            console.log('=> transaction failed');
-          }
+        // callArgs = JSON.stringify([entry.orderId]);
+        // value = entry.price;
+      } else {
+        this.curOrder = entry;
+        if (this.curOrder) {
+          this.orderDialog = true;
         }
-      });
+      }
+      // this.$nebPay.call(this.currentContract, value, callFunction, callArgs, {
+      //   listener: (data) => {
+      //     if (
+      //       JSON.stringify(data) === '"Error: Transaction rejected by user"'
+      //     ) {
+      //       console.log('=> transaction rejected');
+      //       return;
+      //     }
+      //     if (data.txhash) {
+      //       const txhash = data.txhash;
+      //       console.log(`=> this transaction's hash: ${txhash}`);
+      //       this.txData = data;
+      //       this.checkTxDialog = true;
+      //     } else {
+      //       console.log('=> transaction failed');
+      //     }
+      //   }
+      // });
     },
     sellFromBuyList(entry) {
       console.log(JSON.stringify(entry));
@@ -407,6 +407,7 @@ export default {
             entry.amount = tmp.amount;
           }
           entry.time = new Date(tmp.timeStamp * 1000).toISOString();
+          entry.type = tmp.type;
           if (tmp.type === '1') {
             buyList.push(entry);
           } else if (tmp.type === '2') {
@@ -452,6 +453,11 @@ export default {
     console.log('=> exchange beforeMOunt');
     this.getPrice();
     this.getOrders();
+  },
+  mounted() {
+    EventBus.$on('confirmTake', (orderInfo) => {
+      console.log(`=> event got confirmTake ${JSON.stringify(orderInfo)}`);
+    });
   }
 };
 </script>
