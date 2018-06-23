@@ -45,7 +45,10 @@ const messages = {
       okBtn: 'OK',
       cancelBtn: 'CANCEL',
       myAccount: 'My Account',
-      myAccountBalance: 'Account balance:'
+      myAccountBalance: 'Account balance:',
+      orderType: 'Type',
+      orderDoneMsg: 'Completed Orders',
+      orderPendingMsg: 'Pending Orders'
     }
   },
   zh: {
@@ -79,7 +82,10 @@ const messages = {
       okBtn: '确认',
       cancelBtn: '取消',
       myAccount: '我的账户',
-      myAccountBalance: '账户余额:'
+      myAccountBalance: '账户余额:',
+      orderType: '交易类型',
+      orderDoneMsg: '已完成订单',
+      orderPendingMsg: '等待中订单'
     }
   }
 };
