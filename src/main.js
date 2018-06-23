@@ -47,7 +47,10 @@ const messages = {
       myAccount: 'My Account',
       myAccountBalance: 'Account balance:',
       buyOrders: 'Buy Orders',
-      sellOrders: 'Sell Orders'
+      sellOrders: 'Sell Orders',
+      orderType: 'Type',
+      orderDoneMsg: 'Completed Orders',
+      orderPendingMsg: 'Pending Orders'
     }
   },
   zh: {
@@ -83,7 +86,10 @@ const messages = {
       myAccount: '我的账户',
       myAccountBalance: '账户余额:',
       buyOrders: '买单',
-      sellOrders: '卖单'
+      sellOrders: '卖单',
+      orderType: '交易类型',
+      orderDoneMsg: '已完成订单',
+      orderPendingMsg: '等待中订单'
     }
   }
 };
