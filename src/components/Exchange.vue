@@ -99,7 +99,7 @@
         </v-card>
       </v-flex>
       <v-flex xs6>
-        <v-subheader> {{ $t("message.buyCard") }} </v-subheader>
+        <v-subheader> {{ $t("message.buyOrders") }} </v-subheader>
         <v-data-table :headers="buyHeaders" :items="buyOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
@@ -116,7 +116,7 @@
         </v-data-table>
       </v-flex>
       <v-flex xs6>
-        <v-subheader> {{ $t("message.sellCard") }} </v-subheader>
+        <v-subheader> {{ $t("message.sellOrders") }} </v-subheader>
         <v-data-table :headers="sellHeaders" :items="sellOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
@@ -154,10 +154,10 @@ export default {
       console.log('=> selection changed: ', newVal, ' | was: ', oldVal);
       if (newVal === '0') {
         this.getPrice();
-        this.currentContract = this.contractAddresses[0];
+        this.currentContract = this.$contracts[0];
       } else {
         this.getCMPrice();
-        this.currentContract = this.contractAddresses[1];
+        this.currentContract = this.$contracts[1];
       }
       this.getOrders();
     },
@@ -229,11 +229,7 @@ export default {
       ],
       checkTxDialog: false,
       txData: null,
-      contractAddresses: [
-        this.$contractAddr,
-        'n21fghvdRE2bMAAUyExRhkQGy6TvZtgUNfb'
-      ],
-      currentContract: this.$contractAddr,
+      currentContract: this.$contracts[0],
       orderDialog: false,
       curOrder: null
     };
@@ -303,7 +299,7 @@ export default {
       this.$neb.api
         .call(
           this.$account.getAddressString(),
-          this.$contractAddr,
+          this.$contracts[0],
           0,
           '0',
           this.$gasPrice,

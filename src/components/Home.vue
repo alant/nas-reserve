@@ -47,7 +47,7 @@ export default {
       this.$neb.api
         .call(
           this.$account.getAddressString(),
-          this.$contractAddr,
+          this.$contracts[0],
           0,
           '0',
           this.$gasPrice,
@@ -68,7 +68,7 @@ export default {
     },
     buy() {
       console.log('==> buy buy buy');
-      this.$nebPay.call(this.$contractAddr, this.price, 'buyOneShare', '[]', {
+      this.$nebPay.call(this.cc, this.price, 'buyOneShare', '[]', {
         listener: (data) => {
           console.log(`==> data return: ${JSON.stringify(data)}`);
           if (JSON.stringify(data) === 'Error: Transaction rejected by user') {

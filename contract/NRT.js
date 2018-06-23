@@ -342,11 +342,12 @@ NRTContract.prototype = {
     if (order.type === '1') {
       //receive NAS
       //charge comission here, it's the only place we charge commission because when someone is selling their NRT the price should've gone up
+      var balance = new BigNumber(order.balance);
       var config = this.getConfig();
-      var commission = amount.div(config.commission);
-      this._profit = this._profit.plus(commission);
-      var amount = new BigNumber(order.balance);
-      var seller_proceed = amount.minus(commission);
+      var commission = balance.div(config.commission);
+      var profit = new BigNumber(this._profit);
+      this._profit = profit.plus(commission);
+      var seller_proceed = balance.minus(commission);
       seller_proceed = seller_proceed.floor();
       var result = Blockchain.transfer(from, seller_proceed);
       if (!result) {

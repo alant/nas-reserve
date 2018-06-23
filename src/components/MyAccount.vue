@@ -5,7 +5,8 @@
         <v-flex xs3>
           <v-card justify-center height="200px">
             <v-card-text class="px-0">
-              {{ $t('message.myAccountBalance') }} {{balance}} NAS
+              {{ $t('message.myAccountBalance') }} {{nrtBalance}} NRT
+              {{ $t('message.myAccountBalance') }} {{rmbBalance}} NRT
             </v-card-text>
           </v-card>
         </v-flex>
@@ -15,12 +16,12 @@
 </template>
 
 <script>
-
 export default {
   name: 'MyInfo',
   data() {
     return {
-      balance: 0,
+      nrtBalance: 0,
+      rmbBalance: 0,
       buyDoneOrderList: [],
       sellDoneOrderList: [],
       buyPendingOrderList: [],
@@ -28,11 +29,15 @@ export default {
     };
   },
   methods: {
-    getPrice() {
+    getNRTBalance() {
+      this.balance = 0;
+    },
+    getRMBBalance() {
       this.balance = 0;
     },
     beforeMount() {
-      this.getPrice();
+      this.getNRTBalance();
+      this.getRMBBalance();
     }
   }
 };

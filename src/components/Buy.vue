@@ -29,16 +29,6 @@
 </template>
 
 <script>
-const HttpRequest = require('nebulas').HttpRequest;
-const Wallet = require('nebulas');
-const NebPay = require('nebpay');
-
-const neb = new Wallet.Neb();
-neb.setRequest(new HttpRequest('https://testnet.nebulas.io'));
-const nebPay = new NebPay();
-const toAddress = 'n1jEnfDcwFdjseYTz7yLgd6LsgS7Hmfoueb';
-const gasLimit = 200000;
-const gasPrice = 1000000;
 
 export default {
   name: 'HelloWorld',
@@ -50,39 +40,36 @@ export default {
   },
   methods: {
     getPrice() {
-      const testAccount1 = new Wallet.Account(
-        '2b779296ab0ee991a73ecc61319afff8352d171b0a8778ef623911f65d7bf5b4'
-      );
-
       const call = {
         function: 'getCurrentPrice',
         args: '[]'
       };
-      neb.api
+      this.$neb.api
         .call(
-          testAccount1.getAddressString(),
-          toAddress,
+          this.$account.getAddressString(),
+          this.$contracts[0],
           0,
           '0',
-          gasPrice,
-          gasLimit,
+          this.$gasPrice,
+          this.$gasLimit,
           call
         )
         .then((resp) => {
           if (resp.execute_err.length > 0) {
             throw new Error(resp.execute_err);
           }
-          const result = JSON.parse(resp.result);
+          const nasBase = 10 ** 18;
+          const result = JSON.parse(resp.result) / nasBase;
           if (!result) {
             throw new Error('访问合约API出错');
           }
-          this.price = result / (10 ** 18);
+          this.price = result;
         });
     },
     buy() {
       console.log(`${this.tokenNumbers} is going to be bought.`);
-      const serialNumber = nebPay.call(
-        toAddress,
+      const serialNumber = this.$nebPay.call(
+        this.$contracts[0],
         this.price,
         'buyOneShare',
         '[]',

@@ -45,7 +45,9 @@ const messages = {
       okBtn: 'OK',
       cancelBtn: 'CANCEL',
       myAccount: 'My Account',
-      myAccountBalance: 'Account balance:'
+      myAccountBalance: 'Account balance:',
+      buyOrders: 'Buy Orders',
+      sellOrders: 'Sell Orders'
     }
   },
   zh: {
@@ -53,7 +55,7 @@ const messages = {
       appTitle: '星云央行',
       languagePrompt: 'English',
       purchaseNRT: '购买 NRT',
-      exchange: '交易',
+      exchange: '交易所',
       about: '关于',
       buyBtn: '购买 NRT',
       selectCoin: '选择交易的币种',
@@ -79,7 +81,9 @@ const messages = {
       okBtn: '确认',
       cancelBtn: '取消',
       myAccount: '我的账户',
-      myAccountBalance: '账户余额:'
+      myAccountBalance: '账户余额:',
+      buyOrders: '买单',
+      sellOrders: '卖单'
     }
   }
 };
@@ -115,14 +119,17 @@ const testAccount1 = new Wallet.Account(
 const neb = new Wallet.Neb();
 const nebPay = new NebPay();
 neb.setRequest(new HttpRequest('https://testnet.nebulas.io'));
-const toAddress = 'n1mx4dXSXu48Jm4btHi2rETcz11hEyPWcBQ';
+const contracts = [
+  'n1mx4dXSXu48Jm4btHi2rETcz11hEyPWcBQ', // NRT
+  'n21fghvdRE2bMAAUyExRhkQGy6TvZtgUNfb' // RMBnt
+];
 
 const gasLimit = 200000;
 const gasPrice = 1000000;
 
 Vue.prototype.$neb = neb;
 Vue.prototype.$nebPay = nebPay;
-Vue.prototype.$contractAddr = toAddress;
+Vue.prototype.$contracts = contracts;
 Vue.prototype.$account = testAccount1;
 Vue.prototype.$gasLimit = gasLimit;
 Vue.prototype.$gasPrice = gasPrice;

@@ -421,7 +421,7 @@ RMBntContract.prototype = {
       throw new Error('Only the maker can cancel the order');
     }
     var remainValue = new BigNumber(order.balance);
-    var orderPrice = new BigNumber(order.price);
+    var remainRMBnt = new BigNumber(order.amount);
     //I was buying RMBnt. refund my NAS
     if (order.type === '1') {
       //receive NAS
@@ -430,10 +430,8 @@ RMBntContract.prototype = {
       if (!result) {
         throw new Error('Cancel: Receive NAS failed.');
       }
-    } else if (order.type === 'sell') {
+    } else if (order.type === '2') {
       // I was selling RMBnt, refund my RMBnt
-      //receive NRT
-      var remainRMBnt = balance.div(orderPrice);
       var makerBalance = this.balances.get(from) || new BigNumber(0);
       makerBalance.add(remainRMBnt);
       this.balances.set(from, makerBalance);
@@ -471,7 +469,7 @@ RMBntContract.prototype = {
   },
 
   getAllTraders: function() {
-    return this.allTraders;
+    return this._allTraders;
   },
 
   getTraderDetail: function(address) {
@@ -484,9 +482,9 @@ RMBntContract.prototype = {
     var trader = this.tradersDetail.get(from);
     if (!trader) {
       trader = new Trader();
-      var _allTraders = this.allTraders;
-      _allTraders.push(from);
-      this.allTraders = _allTraders;
+      var allTraders = this._allTraders;
+      allTraders.push(from);
+      this._allTraders = allTraders;
     }
     trader.name = _name;
     trader.contact = _contact;
