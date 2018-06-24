@@ -8,6 +8,7 @@ import VueLocalStorage from 'vue-localstorage';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import App from './App';
 import router from './router';
+import newAccountId from './account-list';
 import EventBus from './event-bus';
 
 Vue.use(Vuetify, {});
@@ -50,7 +51,9 @@ const messages = {
       sellOrders: 'Sell Orders',
       orderType: 'Type',
       orderDoneMsg: 'Completed Orders',
-      orderPendingMsg: 'Pending Orders'
+      orderPendingMsg: 'Pending Orders',
+      buyOrderType: 'Buy',
+      sellOrderType: 'Sell'
     }
   },
   zh: {
@@ -89,7 +92,9 @@ const messages = {
       sellOrders: '卖单',
       orderType: '交易类型',
       orderDoneMsg: '已完成订单',
-      orderPendingMsg: '等待中订单'
+      orderPendingMsg: '等待中订单',
+      buyOrderType: '买进',
+      sellOrderType: '卖出'
     }
   }
 };
@@ -118,9 +123,9 @@ const HttpRequest = require('nebulas').HttpRequest;
 const Wallet = require('nebulas');
 const NebPay = require('nebpay');
 
-const testAccount1 = new Wallet.Account(
-  '2b779296ab0ee991a73ecc61319afff8352d171b0a8778ef623911f65d7bf5b4'
-);
+// 2b779296ab0ee991a73ecc61319afff8352d171b0a8778ef623911f65d7bf5b4
+console.log(newAccountId);
+const testAccount1 = new Wallet.Account(newAccountId);
 
 const neb = new Wallet.Neb();
 const nebPay = new NebPay();

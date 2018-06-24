@@ -9,7 +9,7 @@
           <v-list-tile-content>{{ $t('message.exchange') }}</v-list-tile-content>
         </v-list-tile>
         <v-list-tile to="/myaccount">
-          <v-list-tile-content>{{ $t('message.MyAccount') }}</v-list-tile-content>
+          <v-list-tile-content>{{ $t('message.myAccount') }}</v-list-tile-content>
         </v-list-tile>
         <v-list-tile to="/about">
           <v-list-tile-content>{{ $t('message.about') }}</v-list-tile-content>

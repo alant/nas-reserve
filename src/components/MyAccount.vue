@@ -68,7 +68,7 @@ export default {
       doneOrders: [
         {
           playId: 'Player #411',
-          orderType: 'Buy',
+          orderType: this.$t('message.buyOrderType'),
           playerAddr: 'n1b...',
           orderId: 0,
           amount: 100,
@@ -79,7 +79,7 @@ export default {
       pendingOrder: [
         {
           playId: 'Player #511',
-          orderType: 'Sell',
+          orderType: this.$t('message.sellOrderType'),
           playerAddr: 'n1b...',
           orderId: 0,
           amount: 100,
