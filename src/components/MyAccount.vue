@@ -92,6 +92,17 @@ export default {
   methods: {
     getNRTBalance() {
       console.log('=> myAccount getNRTBalance');
+      this.getBalance(true);
+    },
+
+    getRMBBalance() {
+      console.log('=> myAccount getRmbBalance');
+      this.getBalance(false);
+    },
+
+    getBalance(isNRT) {
+      console.log('=> myAccount getBalance');
+      const contractAddress = isNRT ? this.$contracts[0] : this.$contracts[1];
       const call = {
         function: 'balanceOf',
         args: JSON.stringify([this.$account.getAddressString()])
@@ -99,7 +110,7 @@ export default {
       this.$neb.api
         .call(
           this.$account.getAddressString(),
-          this.$contracts[0],
+          contractAddress,
           0,
           '0',
           this.$gasPrice,
@@ -111,15 +122,16 @@ export default {
             throw new Error(resp.execute_err);
           }
           const result = JSON.parse(resp.result);
-          console.log(`getNRTBalance: ${resp.result}`);
+          console.log(`${isNRT ? 'NRT' : 'RMB'} getBalance: ${resp.result}`);
           if (!result) {
             throw new Error('访问合约API出错');
           }
-          this.nrtBalance = result;
+          if (isNRT) {
+            this.nrtBalance = result;
+          } else {
+            this.rmbBalance = result;
+          }
         });
-    },
-    getRMBBalance() {
-      this.balance = 0;
     },
     getMyOrders() {
     }
