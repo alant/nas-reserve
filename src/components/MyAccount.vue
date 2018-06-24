@@ -4,8 +4,24 @@
       <v-flex xs3>
         <v-card justify-center>
           <v-card-text class="px-0">
-            {{ $t('message.myAccountBalance') }} {{nrtBalance}} NAS
+            {{ $t('message.myAccountBalance') }}
           </v-card-text>
+          <v-layout row>
+            <v-flex xs3>
+              <v-subheader>NAS:</v-subheader>
+            </v-flex>
+            <v-flex xs3>
+              <v-subheader>{{nrtBalance}}</v-subheader>
+            </v-flex>
+         </v-layout>
+          <v-layout row>
+            <v-flex xs3>
+              <v-subheader>RMB:</v-subheader>
+            </v-flex>
+            <v-flex xs3>
+              <v-subheader>{{rmbBalance}}</v-subheader>
+            </v-flex>
+         </v-layout>
         </v-card>
       </v-flex>
     </v-layout>
