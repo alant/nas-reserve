@@ -4,7 +4,7 @@
       <v-flex xs3>
         <v-card justify-center>
           <v-card-text class="px-0">
-            {{ $t('message.myAccountBalance') }} {{balance}} NAS
+            {{ $t('message.myAccountBalance') }} {{nrtBalance}} NAS
           </v-card-text>
         </v-card>
       </v-flex>
@@ -91,15 +91,43 @@ export default {
   },
   methods: {
     getNRTBalance() {
-      this.balance = 0;
+      console.log('=> myAccount getNRTBalance');
+      const call = {
+        function: 'balanceOf',
+        args: JSON.stringify([this.$account.getAddressString()])
+      };
+      this.$neb.api
+        .call(
+          this.$account.getAddressString(),
+          this.$contracts[0],
+          0,
+          '0',
+          this.$gasPrice,
+          this.$gasLimit,
+          call
+        )
+        .then((resp) => {
+          if (resp.execute_err.length > 0) {
+            throw new Error(resp.execute_err);
+          }
+          const result = JSON.parse(resp.result);
+          console.log(`getNRTBalance: ${resp.result}`);
+          if (!result) {
+            throw new Error('访问合约API出错');
+          }
+          this.nrtBalance = result;
+        });
     },
     getRMBBalance() {
       this.balance = 0;
     },
-    beforeMount() {
-      this.getNRTBalance();
-      this.getRMBBalance();
+    getMyOrders() {
     }
+  },
+
+  beforeMount() {
+    this.getNRTBalance();
+    this.getRMBBalance();
   }
 };
 </script>
