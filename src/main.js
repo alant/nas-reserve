@@ -10,6 +10,7 @@ import App from './App';
 import router from './router';
 import newAccountId from './account-list';
 import EventBus from './event-bus';
+import Util from './util';
 
 Vue.use(Vuetify, {});
 Vue.use(VueI18n);
@@ -145,6 +146,10 @@ Vue.prototype.$account = testAccount1;
 Vue.prototype.$gasLimit = gasLimit;
 Vue.prototype.$gasPrice = gasPrice;
 Vue.prototype.$Unit = Wallet.Unit;
+
+if (!Util.isChromeExtensionInstalled()) {
+  console.log('Extension is not installed.');
+}
 
 /* eslint-disable no-new */
 new Vue({
