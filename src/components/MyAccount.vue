@@ -149,13 +149,42 @@ export default {
           }
         });
     },
+
     getMyOrders() {
+      console.log('=> myAccount getMyOrders');
+      const call = {
+        function: 'getMyOrders',
+        args: JSON.stringify([this.$account.getAddressString()])
+      };
+      this.$neb.api
+        .call(
+          this.$account.getAddressString(),
+          this.$contracts[0],
+          0,
+          '0',
+          this.$gasPrice,
+          this.$gasLimit,
+          call
+        )
+        .then((resp) => {
+          if (resp.execute_err.length > 0) {
+            throw new Error(resp.execute_err);
+          }
+          const result = JSON.parse(resp.result);
+          if (!result) {
+            throw new Error('访问合约API出错');
+          }
+          console.log(`=> my NRT orders: ${result}`);
+          //  this.sellOrderIds = result;
+          //  this.getOrdersDetail(result, '2');
+        });
     }
   },
 
   beforeMount() {
     this.getNRTBalance();
     this.getRMBBalance();
+    this.getMyOrders();
   }
 };
 </script>
