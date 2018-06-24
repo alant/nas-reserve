@@ -7,6 +7,22 @@ function isChromeExtensionInstalled() {
   return true;
 }
 
+function loadAccountAddress() {
+  window.addEventListener('message', (e) => {
+    if (e.data.data && !!e.data.data.account) {
+      const addressWallet = e.data.data.account;
+      console.log(`Current Wallet address is ${addressWallet}`);
+    }
+  });
+
+  window.postMessage({
+    target: 'contentscript',
+    data: {},
+    method: 'getAccount',
+  }, '*');
+}
+
 export default {
-  isChromeExtensionInstalled
+  isChromeExtensionInstalled,
+  loadAccountAddress
 };

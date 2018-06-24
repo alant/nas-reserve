@@ -149,6 +149,8 @@ Vue.prototype.$Unit = Wallet.Unit;
 
 if (!Util.isChromeExtensionInstalled()) {
   console.log('Extension is not installed.');
+} else {
+  Util.loadAccountAddress();
 }
 
 /* eslint-disable no-new */
