@@ -30,7 +30,18 @@
         <v-card-text class="text-md-left">
           {{ $t('message.orderDoneMsg') }}
         </v-card-text>
-        <v-data-table :headers="ordersHeaders" :items="doneOrders" class="elevation-1">
+        <v-data-table :headers="[
+          {
+            text: this.$t('message.playId'),
+            align: 'left',
+            sortable: false,
+            value: 'playId'
+          },
+          { text: this.$t('message.orderType'), value: 'orderType' },
+          { text: this.$t('message.amount'), value: 'amount' },
+          { text: this.$t('message.price'), value: 'price' },
+          { text: this.$t('message.time'), value: 'time' },
+          ]" :items="doneOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
             <td class="text-xs-right">{{ props.item.orderType }}</td>
@@ -44,7 +55,18 @@
         <v-card-text class="text-md-left">
            {{ $t('message.orderPendingMsg') }}
         </v-card-text>
-        <v-data-table :headers="ordersHeaders" :items="pendingOrder" class="elevation-1">
+        <v-data-table :headers="[
+          {
+            text: this.$t('message.playId'),
+            align: 'left',
+            sortable: false,
+            value: 'playId'
+          },
+          { text: this.$t('message.orderType'), value: 'orderType' },
+          { text: this.$t('message.amount'), value: 'amount' },
+          { text: this.$t('message.price'), value: 'price' },
+          { text: this.$t('message.time'), value: 'time' },
+          ]" :items="pendingOrder" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
             <td class="text-xs-right">{{ props.item.orderType }}</td>
@@ -69,18 +91,6 @@ export default {
       sellDoneOrderList: [],
       buyPendingOrderList: [],
       sellPendingOrderList: [],
-      ordersHeaders: [
-        {
-          text: this.$t('message.playId'),
-          align: 'left',
-          sortable: false,
-          value: 'playId'
-        },
-        { text: this.$t('message.orderType'), value: 'orderType' },
-        { text: this.$t('message.amount'), value: 'amount' },
-        { text: this.$t('message.price'), value: 'price' },
-        { text: this.$t('message.time'), value: 'time' },
-      ],
       doneOrders: [
         {
           playId: 'Player #411',

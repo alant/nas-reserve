@@ -100,7 +100,18 @@
       </v-flex>
       <v-flex xs6>
         <v-subheader> {{ $t("message.buyOrders") }} </v-subheader>
-        <v-data-table :headers="buyHeaders" :items="buyOrders" hide-actions class="elevation-1">
+        <v-data-table :headers="[
+          {
+            text: this.$t('message.playId'),
+            align: 'left',
+            sortable: false,
+            value: 'playId'
+          },
+          { text: this.$t('message.amount'), value: 'amount' },
+          { text: this.$t('message.price'), value: 'price' },
+          { text: this.$t('message.time'), value: 'time' },
+          { text: '', value: 'playId', sortable: false }
+          ]" :items="buyOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
             <td class="text-xs-right">{{ props.item.amount }}</td>
@@ -117,7 +128,18 @@
       </v-flex>
       <v-flex xs6>
         <v-subheader> {{ $t("message.sellOrders") }} </v-subheader>
-        <v-data-table :headers="sellHeaders" :items="sellOrders" hide-actions class="elevation-1">
+        <v-data-table :headers="[
+          {
+            text: this.$t('message.playId'),
+            align: 'left',
+            sortable: false,
+            value: 'playId'
+          },
+          { text: this.$t('message.amount'), value: 'amount' },
+          { text: this.$t('message.price'), value: 'price' },
+          { text: this.$t('message.time'), value: 'time' },
+          { text: '', value: 'playId', sortable: false }
+          ]" :items="sellOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-right">{{ props.item.playId }}</td>
             <td class="text-xs-right">{{ props.item.amount }}</td>
@@ -181,18 +203,6 @@ export default {
         { text: 'RMBnt', value: '1' }
       ],
       alert: true,
-      buyHeaders: [
-        {
-          text: this.$t('message.playId'),
-          align: 'left',
-          sortable: false,
-          value: 'playId'
-        },
-        { text: this.$t('message.amount'), value: 'amount' },
-        { text: this.$t('message.price'), value: 'price' },
-        { text: this.$t('message.time'), value: 'time' },
-        { text: '', value: 'playId', sortable: false }
-      ],
       buyOrders: [
         {
           playId: 'Player #411',
@@ -203,18 +213,6 @@ export default {
           time: '6/20/2018, 9:05:00 PM',
           type: ''
         }
-      ],
-      sellHeaders: [
-        {
-          text: this.$t('message.playId'),
-          align: 'left',
-          sortable: false,
-          value: 'playId'
-        },
-        { text: this.$t('message.amount'), value: 'amount' },
-        { text: this.$t('message.price'), value: 'price' },
-        { text: this.$t('message.time'), value: 'time' },
-        { text: '', value: 'playId', sortable: false }
       ],
       sellOrders: [
         {
