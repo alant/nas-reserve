@@ -31,23 +31,18 @@
           {{ $t('message.orderDoneMsg') }}
         </v-card-text>
         <v-data-table :headers="[
-          {
-            text: this.$t('message.playId'),
-            align: 'left',
-            sortable: false,
-            value: 'playId'
-          },
           { text: this.$t('message.orderType'), value: 'orderType' },
           { text: this.$t('message.amount'), value: 'amount' },
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
           ]" :items="doneOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
-            <td class="text-xs-right">{{ props.item.playId }}</td>
-            <td class="text-xs-right">{{ props.item.orderType }}</td>
-            <td class="text-xs-right">{{ props.item.amount }}</td>
-            <td class="text-xs-right">{{ props.item.price }}</td>
-            <td class="text-xs-right">{{ props.item.time }}</td>
+            <td class="text-xs-left">{{
+              props.item.isBuy ?  $t('message.buyOrderType'): $t('message.sellOrderType')
+            }}</td>
+            <td class="text-xs-left">{{ props.item.amount }}</td>
+            <td class="text-xs-left">{{ props.item.price }}</td>
+            <td class="text-xs-left">{{ props.item.time }}</td>
           </template>
         </v-data-table>
       </v-flex>
@@ -56,23 +51,18 @@
            {{ $t('message.orderPendingMsg') }}
         </v-card-text>
         <v-data-table :headers="[
-          {
-            text: this.$t('message.playId'),
-            align: 'left',
-            sortable: false,
-            value: 'playId'
-          },
-          { text: this.$t('message.orderType'), value: 'orderType' },
+          { text: this.$t('message.orderType'), value: 'isBuy' },
           { text: this.$t('message.amount'), value: 'amount' },
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
-          ]" :items="pendingOrder" hide-actions class="elevation-1">
+          ]" :items="pendingOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
-            <td class="text-xs-right">{{ props.item.playId }}</td>
-            <td class="text-xs-right">{{ props.item.orderType }}</td>
-            <td class="text-xs-right">{{ props.item.amount }}</td>
-            <td class="text-xs-right">{{ props.item.price }}</td>
-            <td class="text-xs-right">{{ props.item.time }}</td>
+            <td class="text-xs-left">{{
+              props.item.isBuy ?  $t('message.buyOrderType'): $t('message.sellOrderType')
+            }}</td>
+            <td class="text-xs-left">{{ props.item.amount }}</td>
+            <td class="text-xs-left">{{ props.item.price }}</td>
+            <td class="text-xs-left">{{ props.item.time }}</td>
           </template>
         </v-data-table>
       </v-flex>
@@ -87,32 +77,8 @@ export default {
     return {
       nrtBalance: 0,
       rmbBalance: 0,
-      buyDoneOrderList: [],
-      sellDoneOrderList: [],
-      buyPendingOrderList: [],
-      sellPendingOrderList: [],
-      doneOrders: [
-        {
-          playId: 'Player #411',
-          orderType: this.$t('message.buyOrderType'),
-          playerAddr: 'n1b...',
-          orderId: 0,
-          amount: 100,
-          price: 1.59,
-          time: '6/20/2018, 9:05:00 PM'
-        }
-      ],
-      pendingOrder: [
-        {
-          playId: 'Player #511',
-          orderType: this.$t('message.sellOrderType'),
-          playerAddr: 'n1b...',
-          orderId: 0,
-          amount: 100,
-          price: 1.59,
-          time: '6/20/2018, 9:05:00 PM'
-        }
-      ]
+      doneOrders: [],
+      pendingOrders: []
     };
   },
   methods: {
@@ -188,6 +154,28 @@ export default {
           //  this.sellOrderIds = result;
           //  this.getOrdersDetail(result, '2');
         });
+
+      this.doneOrders = [
+        {
+          isBuy: true,
+          playerAddr: 'n1b...',
+          orderId: 0,
+          amount: 100,
+          price: 1.59,
+          time: '6/20/2018, 9:05:00 PM'
+        }
+      ];
+
+      this.pendingOrders = [
+        {
+          isBuy: false,
+          playerAddr: 'n1b...',
+          orderId: 0,
+          amount: 99,
+          price: 1.55,
+          time: '6/22/2018, 9:05:00 PM'
+        }
+      ];
     }
   },
 
