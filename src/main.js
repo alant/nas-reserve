@@ -41,7 +41,7 @@ const messages = {
       failedMsg: ' Error Message is: ',
       playId: 'Player',
       amount: 'Amount',
-      time: 'time',
+      time: 'Time',
       currentPriceInfo: 'Current price is:',
       total: 'Total:',
       okBtn: 'OK',
@@ -109,7 +109,42 @@ if (!myLocale) {
   }
 }
 
+const dateTimeFormats = {
+  en: {
+    short: {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    },
+    long: {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric'
+    }
+  },
+  zh: {
+    short: {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    },
+    long: {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    }
+  }
+};
+
 const i18n = new VueI18n({
+  dateTimeFormats,
   locale: myLocale, // set default locale
   messages // set locale messages
 });

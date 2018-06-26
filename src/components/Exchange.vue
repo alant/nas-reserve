@@ -98,7 +98,7 @@
           </v-btn>
         </v-card>
       </v-flex>
-      <v-flex xs6>
+      <v-flex xs9>
         <v-subheader> {{ $t("message.buyOrders") }} </v-subheader>
         <v-data-table :headers="[
           {
@@ -116,7 +116,7 @@
             <td class="text-xs-right">{{ props.item.playId }}</td>
             <td class="text-xs-right">{{ props.item.amount }}</td>
             <td class="text-xs-right">{{ props.item.price }}</td>
-            <td class="text-xs-right">{{ props.item.time }}</td>
+            <td class="text-xs-right">{{ $d(props.item.time, 'long', this.lang) }}</td>
             <td class="justify-center">
               <v-btn icon class="mx-0" @click="sellFromBuyList(props.item)">
                 {{ $t("message.sellCard") }}
@@ -126,7 +126,7 @@
           </template>
         </v-data-table>
       </v-flex>
-      <v-flex xs6>
+      <v-flex xs9>
         <v-subheader> {{ $t("message.sellOrders") }} </v-subheader>
         <v-data-table :headers="[
           {
@@ -144,7 +144,7 @@
             <td class="text-xs-right">{{ props.item.playId }}</td>
             <td class="text-xs-right">{{ props.item.amount }}</td>
             <td class="text-xs-right">{{ props.item.price }}</td>
-            <td class="text-xs-right">{{ props.item.time }}</td>
+            <td class="text-xs-right">{{ $d(props.item.time, 'long', this.lang) }}</td>
             <td class="justify-center">
               <v-btn icon class="mx-0" @click="buyFromSellList(props.item)">
                 {{ $t("message.buyCard") }}
@@ -210,7 +210,7 @@ export default {
           orderId: 0,
           amount: 100,
           price: 1.59,
-          time: '6/20/2018, 9:05:00 PM',
+          time: '1529989992092',
           type: ''
         }
       ],
@@ -221,7 +221,7 @@ export default {
           orderId: 0,
           amount: 200,
           price: 0.11,
-          time: '6/18/2018, 5:00:00 PM',
+          time: '1529989992092',
           type: ''
         }
       ],
@@ -229,7 +229,8 @@ export default {
       txData: null,
       currentContract: this.$contracts[0],
       orderDialog: false,
-      curOrder: null
+      curOrder: null,
+      lang: this.$i18n.locale
     };
   },
   computed: {
@@ -440,7 +441,7 @@ export default {
             } else {
               entry.amount = tmp.amount;
             }
-            entry.time = new Date(tmp.timeStamp * 1000).toISOString();
+            entry.time = new Date(tmp.timeStamp * 1000);
             entry.type = tmp.type;
             if (tmp.type === '1') {
               buyList.push(entry);
