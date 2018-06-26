@@ -118,10 +118,14 @@
             <td class="text-xs-right">{{ props.item.price }}</td>
             <td class="text-xs-right">{{ $d(props.item.time, 'long', this.lang) }}</td>
             <td class="justify-center">
-              <v-btn icon class="mx-0" @click="sellFromBuyList(props.item)">
-                {{ $t("message.sellCard") }}
+              <div v-if="props.item.status === '0'">
+                <v-btn icon class="mx-0" @click="sellFromBuyList(props.item)">
+                  {{ $t("message.sellCard") }}
+                </v-btn>
+              </div>
+              <div v-if="props.item.status === '1'">
                 <v-icon dark right>check_circle</v-icon>
-              </v-btn>
+              </div>
             </td>
           </template>
         </v-data-table>
@@ -146,10 +150,14 @@
             <td class="text-xs-right">{{ props.item.price }}</td>
             <td class="text-xs-right">{{ $d(props.item.time, 'long', this.lang) }}</td>
             <td class="justify-center">
-              <v-btn icon class="mx-0" @click="buyFromSellList(props.item)">
-                {{ $t("message.buyCard") }}
+              <div v-if="props.item.status === '0'">
+                <v-btn icon class="mx-0" @click="buyFromSellList(props.item)">
+                  {{ $t("message.buyCard") }}
+                </v-btn>
+              </div>
+              <div v-if="props.item.status === '1'">
                 <v-icon dark right>check_circle</v-icon>
-              </v-btn>
+              </div>
             </td>
           </template>
         </v-data-table>
@@ -211,7 +219,8 @@ export default {
           amount: 100,
           price: 1.59,
           time: '1529989992092',
-          type: ''
+          type: '',
+          status: 0
         }
       ],
       sellOrders: [
@@ -222,7 +231,8 @@ export default {
           amount: 200,
           price: 0.11,
           time: '1529989992092',
-          type: ''
+          type: '',
+          status: 0
         }
       ],
       checkTxDialog: false,
@@ -258,15 +268,17 @@ export default {
     newOrder(type, value) {
       const callFunction = 'newOrder';
       let callArgs;
-      const price = this.$Unit.nasToBasic(this.currentPrice);
+      // price from (Nas / RMB) to (Nas / RMB cent)
+      const price = this.$Unit.nasToBasic(this.currentPrice / 100);
       if (this.selectedToken === '0') {
         callArgs = JSON.stringify([type, price]);
       } else {
         let amount;
         if (type === '1') {
-          amount = this.buyNumbers;
+          // amount in contract is in cent
+          amount = this.buyNumbers * 100;
         } else {
-          amount = this.sellNumbers;
+          amount = this.sellNumbers * 100;
         }
         callArgs = JSON.stringify([type, amount, price]);
       }
@@ -336,6 +348,11 @@ export default {
               )}`
             );
             this.currentPrice = 1 / RMBNAS;
+            const decNum = (`${this.currentPrice}`).split('.')[1].length;
+            console.log(`dec number ====> : ${decNum}`);
+            if (decNum > 9) {
+              this.currentPrice = this.currentPrice.toFixed(9);
+            }
           },
           (err) => {
             this.loading = false;
@@ -371,7 +388,8 @@ export default {
       const callFunction = 'takeOrder';
       let callArgs;
       if (!_callArgs) {
-        callArgs = JSON.stringify([orderInfo.orderId, orderInfo.amount]);
+        // amount in RMB cents
+        callArgs = JSON.stringify([orderInfo.orderId, orderInfo.amount * 100]);
       } else {
         callArgs = _callArgs;
       }
@@ -380,6 +398,7 @@ export default {
       if (orderInfo.type === '1') {
         value = 0;
       } else {
+        // price in nas / rmb, amount in rmb
         value = orderInfo.price * orderInfo.amount;
         value = new BigNumber(value.toString());
       }
@@ -434,12 +453,15 @@ export default {
             )}`;
             entry.playerAddr = tmp.maker;
             entry.orderId = tmp.id;
-            const base = 10 ** 18;
+            // convert price in wei / rmb cent to NAS / RMB
+            const base = 10 ** 16;
             entry.price = tmp.price / base;
+
             if (this.selectedToken === '0') {
               entry.amount = 1;
             } else {
-              entry.amount = tmp.amount;
+              // convert to RMB
+              entry.amount = tmp.amount / 100;
             }
             entry.time = new Date(tmp.timeStamp * 1000);
             entry.type = tmp.type;
@@ -450,6 +472,7 @@ export default {
             } else {
               console.log('unexpected type');
             }
+            entry.status = tmp.status;
             if (_type === '1') this.buyOrders = buyList;
             if (_type === '2') this.sellOrders = sellList;
           } else {

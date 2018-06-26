@@ -77,9 +77,9 @@ var Order = function(text) {
     var obj = JSON.parse(text);
     this.id = obj.id;
     this.type = obj.type; //  1 is buy; 2 is sell
-    this.price = obj.price; // price in  Wei / RMBnt
+    this.price = obj.price; // price in  Wei / RMBnt cent
     this.orderAmount = obj.orderAmount; // amount in RMBnt recordKeeping
-    this.amount = obj.amount; // amount in RMBnt
+    this.amount = obj.amount; // amount in RMBnt cent
     this.balance = obj.balance; // balance in Wei
     this.maker = obj.maker;
     this.taker = obj.taker;
@@ -203,7 +203,7 @@ RMBntContract.prototype = {
     this._name = 'RMB Nas Tether';
     this._symbol = 'RMBnt';
     this._decimals = 2;
-    // 100 trillion RMB. Should be enough
+    // 100 trillion RMBnt cents. Should be enough
     this._totalSupply = new BigNumber(10 ** 14);
     this._profit = new BigNumber(0);
     var allTraders = [];
@@ -222,6 +222,7 @@ RMBntContract.prototype = {
     this._config = config;
   },
 
+  // _amount in RMBnt cent, _price in wei / RMBnt cent
   newOrder: function(_type, _amount, _price) {
     var config = this.getConfig();
     var order = new Order();
@@ -230,9 +231,10 @@ RMBntContract.prototype = {
     order.type = _type;
     var price = new BigNumber(_price);
     order.price = price;
-    var amount = new BigNumber(_amount);
+    var amount = new BigNumber(parseInt(_amount));
     order.amount = amount;
     order.orderAmount = amount;
+    var orderValue = price.mul(amount);
     var _now = Date.now();
     order.timeStamp = parseInt(_now / 1000);
 
@@ -245,7 +247,7 @@ RMBntContract.prototype = {
       //Hand over NAS
       var _value = new BigNumber(Blockchain.transaction.value);
 
-      if (_value.lt(amount)) {
+      if (_value.lt(orderValue)) {
         throw new Error(
           'You must deposit the number of NAS as the amount you said you will pay'
         );
@@ -278,14 +280,11 @@ RMBntContract.prototype = {
     this._config = config;
     this.orders.set(order.id, order);
 
-    var _myOrders = this.myOrders.get(from) || [];
-    _myOrders.push(order.id);
-    this.myOrders.set(from, _myOrders);
   },
-
+  //_amount in RMB cent
   takeOrder: function(_id, _amount) {
     var from = Blockchain.transaction.from;
-    var amount = new BigNumber(_amount);
+    var amount = new BigNumber(parseInt(_amount));
     var order = this.orders.get(_id);
     if (!order) {
       throw new Error("Sorry, can't fill an order that does not exsit");
@@ -396,7 +395,6 @@ RMBntContract.prototype = {
     makerVolume = makerVolume.add(orderValue);
     this.tradersDetail.put(from, taker);
     this.tradersDetail.put(order.maker, maker);
-
     this.orders.put(_id, order);
   },
 

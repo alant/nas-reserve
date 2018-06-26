@@ -5,8 +5,8 @@ const HttpRequest = require('nebulas').HttpRequest;
 
 const neb = new Wallet.Neb();
 const contracts = [
-  'n1vdKRJ14qFv7rbnkGrzanXNpCgXPZ6dYct', // NRT
-  'n1q4UK5ZDjR3yb16Y6KsoWWAAqBh9xd5mMv' // RMBnt
+  'n22UcnC8JXmUXDRTu2ow6LojMmmMstLo6AG', // NRT
+  'n1tmW6xaDSQUMkJYFovreLLCkNj8CP49yn9' // RMBnt
 ];
 neb.setRequest(new HttpRequest('https://testnet.nebulas.io'));
 

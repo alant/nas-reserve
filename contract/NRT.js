@@ -248,8 +248,7 @@ NRTContract.prototype = {
     config.current_price = price;
 
     var balance = new BigNumber(config.balance);
-    balance = balance.plus(_value);
-    config.balance = balance;
+    config.balance = balance.plus(_value);
 
     this._config = config;
 
@@ -284,7 +283,7 @@ NRTContract.prototype = {
           'You must deposit the number of NAS as the price you said you will pay'
         );
       }
-      order.balance.plus(_value);
+      order.balance = _value;
       var buyIds = this._buyOrderIds;
       buyIds.push(order.id);
       this._buyOrderIds = buyIds;
