@@ -192,14 +192,6 @@ var RMBntContract = function() {
       stringify: function(o) {
         return o.toString();
       }
-    },
-    myOrders: {
-      parse: function(value) {
-        return JSON.parse(value);
-      },
-      stringify: function(o) {
-        return o.toString();
-      }
     }
   });
 };
@@ -459,7 +451,22 @@ RMBntContract.prototype = {
   },
 
   getMyOrders: function(from) {
-    var result = this.myOrders.get(from);
+    let result = [];
+    var buyOrderIds = this._buyOrderIds || [];
+    var sellOrderIds = this._sellOrderIds || [];
+
+    for (let orderId of buyOrderIds) {
+      let order = this.orders.get(orderId);
+      if (order && (order.maker === from || order.taker === from)) {
+        result.push(order);
+      }
+    }
+    for (let orderId of sellOrderIds) {
+      let order = this.orders.get(orderId);
+      if (order && (order.maker === from || order.taker === from)) {
+        result.push(order);
+      }
+    }
     return result;
   },
 

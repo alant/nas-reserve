@@ -74,7 +74,7 @@ export default {
     },
     buy() {
       console.log('==> buy buy buy');
-      this.$nebPay.call(this.cc, this.price, 'buyOneShare', '[]', {
+      this.$nebPay.call(this.$contracts[0], this.price, 'buyOneShare', '[]', {
         listener: (data) => {
           console.log(`==> data return: ${JSON.stringify(data)}`);
           if (JSON.stringify(data) === 'Error: Transaction rejected by user') {

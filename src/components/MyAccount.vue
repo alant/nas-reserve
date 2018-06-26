@@ -126,7 +126,7 @@ export default {
     },
 
     getMyOrders() {
-      console.log('=> myAccount getMyOrders');
+      console.log(`=> myAccount getMyOrders: ${this.$account}`);
       const call = {
         function: 'getMyOrders',
         args: JSON.stringify([this.$account])

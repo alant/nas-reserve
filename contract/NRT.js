@@ -190,14 +190,6 @@ var NRTContract = function() {
       stringify: function(o) {
         return o.toString();
       }
-    },
-    myOrders: {
-      parse: function(value) {
-        return JSON.parse(value);
-      },
-      stringify: function(o) {
-        return o.toString();
-      }
     }
   });
 };
@@ -323,10 +315,6 @@ NRTContract.prototype = {
 
     this._config = config;
     this.orders.set(order.id, order);
-
-    var _myOrders = this.myOrders.get(from) || [];
-    _myOrders.push(order.id);
-    this.myOrders.set(from, _myOrders);
   },
 
   takeOrder: function(_id) {
@@ -452,7 +440,22 @@ NRTContract.prototype = {
   },
 
   getMyOrders: function(from) {
-    var result = this.myOrders.get(from);
+    let result = [];
+    var buyOrderIds = this._buyOrderIds || [];
+    var sellOrderIds = this._sellOrderIds || [];
+
+    for (let orderId of buyOrderIds) {
+      let order = this.orders.get(orderId);
+      if (order && (order.maker === from || order.taker === from)) {
+        result.push(order);
+      }
+    }
+    for (let orderId of sellOrderIds) {
+      let order = this.orders.get(orderId);
+      if (order && (order.maker === from || order.taker === from)) {
+        result.push(order);
+      }
+    }
     return result;
   },
 
