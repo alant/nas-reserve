@@ -124,7 +124,7 @@
                 </v-btn>
               </div>
               <div v-if="props.item.status === '1'">
-                <v-icon dark right>check_circle</v-icon>
+                <v-icon light right>check_circle</v-icon>
               </div>
             </td>
           </template>
@@ -156,7 +156,7 @@
                 </v-btn>
               </div>
               <div v-if="props.item.status === '1'">
-                <v-icon dark right>check_circle</v-icon>
+                <v-icon light right>check_circle</v-icon>
               </div>
             </td>
           </template>
