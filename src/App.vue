@@ -33,11 +33,11 @@
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items class="hidden-xs-only">
+        <v-btn flat to="/">
+          {{ $t('message.exchange') }}
+        </v-btn>
         <v-btn flat to="/buy">
           {{ $t('message.purchaseNRT') }}
-        </v-btn>
-        <v-btn flat to="/exchange">
-          {{ $t('message.exchange') }}
         </v-btn>
         <v-btn flat to="/myaccount">
           {{ $t('message.myAccount') }}

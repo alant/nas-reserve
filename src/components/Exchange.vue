@@ -9,9 +9,10 @@
       </v-flex>
     </v-layout>
     <v-layout row wrap justify-center>
-      <v-flex xs5>
+      <v-flex xs10>
         <v-alert v-model="alert" type="info" dismissible>
-          This is what NRT is about
+          <div v-if="selectedToken === '0'">{{ $t("message.nrtAbout") }}</div>
+          <div v-if="selectedToken === '1'">{{ $t("message.rmbAbout") }}</div>
         </v-alert>
       </v-flex>
     </v-layout>
@@ -348,7 +349,7 @@ export default {
               )}`
             );
             this.currentPrice = 1 / RMBNAS;
-            const decNum = (`${this.currentPrice}`).split('.')[1].length;
+            const decNum = `${this.currentPrice}`.split('.')[1].length;
             console.log(`dec number ====> : ${decNum}`);
             if (decNum > 9) {
               this.currentPrice = this.currentPrice.toFixed(9);

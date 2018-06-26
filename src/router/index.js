@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Home from '@/components/Home';
+import About from '@/components/About';
 import Buy from '@/components/Buy';
 import Exchange from '@/components/Exchange';
 import MyAccount from '@/components/MyAccount';
@@ -10,8 +10,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Home',
-      component: Home
+      name: 'Exchange',
+      component: Exchange
     },
     {
       path: '/buy',
@@ -19,14 +19,14 @@ export default new Router({
       component: Buy
     },
     {
-      path: '/exchange',
-      name: 'Exchange',
-      component: Exchange
-    },
-    {
       path: '/myaccount',
       name: 'MyAccount',
       component: MyAccount
+    },
+    {
+      path: '/about',
+      name: 'About',
+      component: About
     }
   ]
 });

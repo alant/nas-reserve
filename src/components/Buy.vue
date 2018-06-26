@@ -2,21 +2,21 @@
   <v-container grid-list-md text-xs-center>
     <v-slide-y-transition mode="out-in">
       <v-layout row wrap align-center justify-center>
-        <v-flex xs3>
+        <v-flex xs8>
           <v-card justify-center height="200px">
             <v-card-text class="px-0">
               {{ $t('message.currentPriceInfo') }} {{price}} NAS
             </v-card-text>
               <v-layout row>
-                <v-flex xs3>
+                <v-flex xs4>
                   <v-subheader>
                     {{ $t("message.quantity") }}
                   </v-subheader>
                 </v-flex>
-                <v-flex xs9>
+                <v-flex xs4>
                   <v-subheader>
-                    <v-text-field v-model="tokenNumbers" type="number"
-                              placeholder="0"/>
+                    <v-text-field disabled v-model="tokenNumbers" type="number"
+                              placeholder="1"/>
                   </v-subheader>
                 </v-flex>
               </v-layout>
@@ -35,7 +35,7 @@ export default {
   data() {
     return {
       price: 0,
-      tokenNumbers: 0
+      tokenNumbers: 1
     };
   },
   methods: {
