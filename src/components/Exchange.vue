@@ -296,8 +296,8 @@ export default {
       };
       this.$neb.api
         .call(
-          this.$account.getAddressString(),
-          this.$contracts[0],
+          this.$account,
+          this.currentContract,
           0,
           '0',
           this.$gasPrice,
@@ -305,15 +305,20 @@ export default {
           call
         )
         .then((resp) => {
-          if (resp.execute_err.length > 0) {
+          console.log(`====> exchange getprice : ${JSON.stringify(resp)}`);
+          if (resp.result.length === 0) {
+            console.log('Exchange getBuyOrderIds result is empty');
+          } else {
+            const nasBase = 10 ** 18;
+            const result = JSON.parse(resp.result) / nasBase;
+            this.currentPrice = result;
+          }
+          if (
+            resp.execute_err.length > 0 &&
+            resp.execute_err !== 'insufficient balance'
+          ) {
             throw new Error(resp.execute_err);
           }
-          const nasBase = 10 ** 18;
-          const result = JSON.parse(resp.result) / nasBase;
-          if (!result) {
-            throw new Error('访问合约API出错');
-          }
-          this.currentPrice = result;
         });
     },
     getCMPrice() {
@@ -405,7 +410,7 @@ export default {
           args: JSON.stringify([id])
         };
         return this.$neb.api.call(
-          this.$account.getAddressString(),
+          this.$account,
           this.currentContract,
           0,
           '0',
@@ -420,32 +425,36 @@ export default {
         const buyList = [];
         const sellList = [];
         for (let i = 0; i < results.length; i += 1) {
-          const tmp = JSON.parse(results[i].result);
-          const entry = {};
-          entry.playId = `${tmp.maker.substring(0, 3)}...${tmp.maker.substr(
-            tmp.maker.length - 3
-          )}`;
-          entry.playerAddr = tmp.maker;
-          entry.orderId = tmp.id;
-          const base = 10 ** 18;
-          entry.price = tmp.price / base;
-          if (this.selectedToken === '0') {
-            entry.amount = 1;
+          if (results[i].result.length > 0) {
+            const tmp = JSON.parse(results[i].result);
+            const entry = {};
+            entry.playId = `${tmp.maker.substring(0, 3)}...${tmp.maker.substr(
+              tmp.maker.length - 3
+            )}`;
+            entry.playerAddr = tmp.maker;
+            entry.orderId = tmp.id;
+            const base = 10 ** 18;
+            entry.price = tmp.price / base;
+            if (this.selectedToken === '0') {
+              entry.amount = 1;
+            } else {
+              entry.amount = tmp.amount;
+            }
+            entry.time = new Date(tmp.timeStamp * 1000).toISOString();
+            entry.type = tmp.type;
+            if (tmp.type === '1') {
+              buyList.push(entry);
+            } else if (tmp.type === '2') {
+              sellList.push(entry);
+            } else {
+              console.log('unexpected type');
+            }
+            if (_type === '1') this.buyOrders = buyList;
+            if (_type === '2') this.sellOrders = sellList;
           } else {
-            entry.amount = tmp.amount;
-          }
-          entry.time = new Date(tmp.timeStamp * 1000).toISOString();
-          entry.type = tmp.type;
-          if (tmp.type === '1') {
-            buyList.push(entry);
-          } else if (tmp.type === '2') {
-            sellList.push(entry);
-          } else {
-            console.log('unexpected type');
+            console.log('===> getOrdersDetail promises.then resultsis empty');
           }
         }
-        if (_type === '1') this.buyOrders = buyList;
-        if (_type === '2') this.sellOrders = sellList;
       });
     },
     getOrders() {
@@ -454,9 +463,10 @@ export default {
         function: 'getSellOrderIds',
         args: '[]'
       };
+      console.log(`====> exchange currentContract : ${this.currentContract}`);
       this.$neb.api
         .call(
-          this.$account.getAddressString(),
+          this.$account,
           this.currentContract,
           0,
           '0',
@@ -465,16 +475,23 @@ export default {
           call
         )
         .then((resp) => {
-          if (resp.execute_err.length > 0) {
+          console.log(
+            `====> exchange getSellOrderIds : ${JSON.stringify(resp)}`
+          );
+          if (resp.result.length === 0) {
+            console.log('Exchange getSellOrderIds result is empty');
+          } else {
+            const result = JSON.parse(resp.result);
+            console.log(`=> sellOrderids: ${result}`);
+            this.sellOrderIds = result;
+            this.getOrdersDetail(result, '2');
+          }
+          if (
+            resp.execute_err.length > 0 &&
+            resp.execute_err !== 'insufficient balance'
+          ) {
             throw new Error(resp.execute_err);
           }
-          const result = JSON.parse(resp.result);
-          if (!result) {
-            throw new Error('访问合约API出错');
-          }
-          console.log(`=> sellOrderids: ${result}`);
-          this.sellOrderIds = result;
-          this.getOrdersDetail(result, '2');
         });
       // buy orders
       call = {
@@ -483,7 +500,7 @@ export default {
       };
       this.$neb.api
         .call(
-          this.$account.getAddressString(),
+          this.$account,
           this.currentContract,
           0,
           '0',
@@ -492,16 +509,23 @@ export default {
           call
         )
         .then((resp) => {
-          if (resp.execute_err.length > 0) {
+          console.log(
+            `====> exchange getBuyOrderIds : ${JSON.stringify(resp)}`
+          );
+          if (resp.result.length === 0) {
+            console.log('Exchange getBuyOrderIds result is empty');
+          } else {
+            const result = JSON.parse(resp.result);
+            console.log(`=> buyOrderids: ${result}`);
+            this.buyOrderIds = result;
+            this.getOrdersDetail(result, '1');
+          }
+          if (
+            resp.execute_err.length > 0 &&
+            resp.execute_err !== 'insufficient balance'
+          ) {
             throw new Error(resp.execute_err);
           }
-          const result = JSON.parse(resp.result);
-          if (!result) {
-            throw new Error('访问合约API出错');
-          }
-          console.log(`=> buyOrderids: ${result}`);
-          this.buyOrderIds = result;
-          this.getOrdersDetail(result, '1');
         });
     }
   },

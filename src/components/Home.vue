@@ -35,7 +35,8 @@ export default {
     return {
       price: 0,
       checkTxDialog: false,
-      txData: null
+      txData: null,
+      accountAddr: null
     };
   },
   methods: {
@@ -44,9 +45,10 @@ export default {
         function: 'getCurrentPrice',
         args: '[]'
       };
+      // console.log(`home:getPrice: this account : ${this.$account}, contract: ${this.$contracts[0]}`);
       this.$neb.api
         .call(
-          this.$account.getAddressString(),
+          this.$account,
           this.$contracts[0],
           0,
           '0',
@@ -55,15 +57,19 @@ export default {
           call
         )
         .then((resp) => {
-          if (resp.execute_err.length > 0) {
+          if (resp.result.length === 0) {
+            console.log('Home getCurrentPrice result is empty');
+          } else {
+            const nasBase = 10 ** 18;
+            const result = JSON.parse(resp.result) / nasBase;
+            this.price = result;
+          }
+          if (
+            resp.execute_err.length > 0 &&
+            resp.execute_err !== 'insufficient balance'
+          ) {
             throw new Error(resp.execute_err);
           }
-          const nasBase = 10 ** 18;
-          const result = JSON.parse(resp.result) / nasBase;
-          if (!result) {
-            throw new Error('访问合约API出错');
-          }
-          this.price = result;
         });
     },
     buy() {
@@ -87,7 +93,7 @@ export default {
       });
     }
   },
-  beforeMount() {
+  mounted() {
     this.getPrice();
   }
 };

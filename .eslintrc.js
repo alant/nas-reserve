@@ -26,6 +26,7 @@ module.exports = {
     // allow console and debugger in development
     "no-console": process.env.NODE_ENV === "production" ? 2 : 0,
     "comma-dangle": ["error", "only-multiline"],
+    "max-len": 0,
     // don't require .vue extension when importing
     "import/extensions": [
       "error",

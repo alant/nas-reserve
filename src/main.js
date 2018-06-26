@@ -120,38 +120,36 @@ EventBus.$on('locale', (localeParam) => {
 });
 
 // make this.$neb etc availalbe to all components
-const HttpRequest = require('nebulas').HttpRequest;
-const Wallet = require('nebulas');
 const NebPay = require('nebpay');
+const Wallet = require('nebulas');
 
-// 2b779296ab0ee991a73ecc61319afff8352d171b0a8778ef623911f65d7bf5b4
-console.log(newAccountId);
-const testAccount1 = new Wallet.Account(newAccountId);
-
-const neb = new Wallet.Neb();
 const nebPay = new NebPay();
-neb.setRequest(new HttpRequest('https://testnet.nebulas.io'));
-const contracts = [
-  'n1mx4dXSXu48Jm4btHi2rETcz11hEyPWcBQ', // NRT
-  'n21fghvdRE2bMAAUyExRhkQGy6TvZtgUNfb' // RMBnt
-];
 
 const gasLimit = 200000;
 const gasPrice = 1000000;
 
-Vue.prototype.$neb = neb;
-Vue.prototype.$nebPay = nebPay;
-Vue.prototype.$contracts = contracts;
-Vue.prototype.$account = testAccount1;
-Vue.prototype.$gasLimit = gasLimit;
-Vue.prototype.$gasPrice = gasPrice;
-Vue.prototype.$Unit = Wallet.Unit;
+const accountInj = new Wallet.Account(newAccountId);
+console.log(`testAccount is: ${accountInj.getAddressString()}`);
 
 if (!Util.isChromeExtensionInstalled()) {
   console.log('Extension is not installed.');
+  Vue.prototype.$account = accountInj.getAddressString();
 } else {
   Util.loadAccountAddress();
+  const userAddr = Vue.localStorage.get('accountAddr');
+  if (userAddr) {
+    Vue.prototype.$account = userAddr;
+  } else {
+    Vue.prototype.$account = accountInj.getAddressString();
+  }
 }
+// Vue.prototype.$account = accountInj.getAddressString();
+Vue.prototype.$neb = Util.neb;
+Vue.prototype.$contracts = Util.contracts;
+Vue.prototype.$nebPay = nebPay;
+Vue.prototype.$gasLimit = gasLimit;
+Vue.prototype.$gasPrice = gasPrice;
+Vue.prototype.$Unit = Wallet.Unit;
 
 /* eslint-disable no-new */
 new Vue({

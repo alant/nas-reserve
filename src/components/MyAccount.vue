@@ -13,7 +13,7 @@
             <v-flex xs3>
               <v-subheader>{{nrtBalance}}</v-subheader>
             </v-flex>
-         </v-layout>
+          </v-layout>
           <v-layout row>
             <v-flex xs3>
               <v-subheader>RMB:</v-subheader>
@@ -21,7 +21,7 @@
             <v-flex xs3>
               <v-subheader>{{rmbBalance}}</v-subheader>
             </v-flex>
-         </v-layout>
+          </v-layout>
         </v-card>
       </v-flex>
     </v-layout>
@@ -37,9 +37,8 @@
           { text: this.$t('message.time'), value: 'time' },
           ]" :items="doneOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
-            <td class="text-xs-left">{{
-              props.item.isBuy ?  $t('message.buyOrderType'): $t('message.sellOrderType')
-            }}</td>
+            <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
+            </td>
             <td class="text-xs-left">{{ props.item.amount }}</td>
             <td class="text-xs-left">{{ props.item.price }}</td>
             <td class="text-xs-left">{{ props.item.time }}</td>
@@ -48,7 +47,7 @@
       </v-flex>
       <v-flex xs6>
         <v-card-text class="text-md-left">
-           {{ $t('message.orderPendingMsg') }}
+          {{ $t('message.orderPendingMsg') }}
         </v-card-text>
         <v-data-table :headers="[
           { text: this.$t('message.orderType'), value: 'isBuy' },
@@ -57,9 +56,8 @@
           { text: this.$t('message.time'), value: 'time' },
           ]" :items="pendingOrders" hide-actions class="elevation-1">
           <template slot="items" slot-scope="props">
-            <td class="text-xs-left">{{
-              props.item.isBuy ?  $t('message.buyOrderType'): $t('message.sellOrderType')
-            }}</td>
+            <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
+            </td>
             <td class="text-xs-left">{{ props.item.amount }}</td>
             <td class="text-xs-left">{{ props.item.price }}</td>
             <td class="text-xs-left">{{ props.item.time }}</td>
@@ -97,11 +95,11 @@ export default {
       const contractAddress = isNRT ? this.$contracts[0] : this.$contracts[1];
       const call = {
         function: 'balanceOf',
-        args: JSON.stringify([this.$account.getAddressString()])
+        args: JSON.stringify([this.$account])
       };
       this.$neb.api
         .call(
-          this.$account.getAddressString(),
+          this.$account,
           contractAddress,
           0,
           '0',
@@ -110,18 +108,19 @@ export default {
           call
         )
         .then((resp) => {
-          if (resp.execute_err.length > 0) {
-            throw new Error(resp.execute_err);
-          }
-          const result = JSON.parse(resp.result);
+          // if (resp.execute_err.length > 0) {
+          //   throw new Error(resp.execute_err);
+          // }
+          console.log(`====> balanceOf : ${JSON.stringify(resp)}`);
+          // const result = JSON.parse(resp.result);
           console.log(`${isNRT ? 'NRT' : 'RMB'} getBalance: ${resp.result}`);
-          if (!result) {
-            throw new Error('访问合约API出错');
-          }
+          // if (!result) {
+          //   throw new Error('访问合约API出错');
+          // }
           if (isNRT) {
-            this.nrtBalance = result;
+            this.nrtBalance = resp.result;
           } else {
-            this.rmbBalance = result;
+            this.rmbBalance = resp.result;
           }
         });
     },
@@ -130,11 +129,11 @@ export default {
       console.log('=> myAccount getMyOrders');
       const call = {
         function: 'getMyOrders',
-        args: JSON.stringify([this.$account.getAddressString()])
+        args: JSON.stringify([this.$account])
       };
       this.$neb.api
         .call(
-          this.$account.getAddressString(),
+          this.$account,
           this.$contracts[0],
           0,
           '0',
@@ -143,16 +142,21 @@ export default {
           call
         )
         .then((resp) => {
-          if (resp.execute_err.length > 0) {
+          console.log(`====> MyAccount getMyOrders : ${JSON.stringify(resp)}`);
+          if (resp.result.length === 0) {
+            console.log('Exchange getBuyOrderIds result is empty');
+          } else {
+            const result = JSON.parse(resp.result);
+            console.log(`=> => my NRT orders:: ${result}`);
+            // this.buyOrderIds = result;
+            // this.getOrdersDetail(result, '1');
+          }
+          if (
+            resp.execute_err.length > 0 &&
+            resp.execute_err !== 'insufficient balance'
+          ) {
             throw new Error(resp.execute_err);
           }
-          const result = JSON.parse(resp.result);
-          if (!result) {
-            throw new Error('访问合约API出错');
-          }
-          console.log(`=> my NRT orders: ${result}`);
-          //  this.sellOrderIds = result;
-          //  this.getOrdersDetail(result, '2');
         });
 
       this.doneOrders = [
