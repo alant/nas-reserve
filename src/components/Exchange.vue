@@ -112,12 +112,13 @@
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
           { text: '', value: 'playId', sortable: false }
-          ]" :items="buyOrders" hide-actions class="elevation-1">
+          ]" :items="buyOrders" hide-actions
+          :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
           <template slot="items" slot-scope="props">
-            <td class="text-xs-right">{{ props.item.playId }}</td>
-            <td class="text-xs-right">{{ props.item.amount }}</td>
-            <td class="text-xs-right">{{ props.item.price }}</td>
-            <td class="text-xs-right">{{ $d(props.item.time, 'long', this.lang) }}</td>
+            <td class="text-xs-left">{{ props.item.playId }}</td>
+            <td class="text-xs-left">{{ props.item.amount }}</td>
+            <td class="text-xs-left">{{ props.item.price }}</td>
+            <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
             <td class="justify-center">
               <div v-if="props.item.status === '0'">
                 <v-btn icon class="mx-0" @click="sellFromBuyList(props.item)">
@@ -144,12 +145,13 @@
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
           { text: '', value: 'playId', sortable: false }
-          ]" :items="sellOrders" hide-actions class="elevation-1">
+          ]" :items="sellOrders" hide-actions
+          :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
           <template slot="items" slot-scope="props">
-            <td class="text-xs-right">{{ props.item.playId }}</td>
-            <td class="text-xs-right">{{ props.item.amount }}</td>
-            <td class="text-xs-right">{{ props.item.price }}</td>
-            <td class="text-xs-right">{{ $d(props.item.time, 'long', this.lang) }}</td>
+            <td class="text-xs-left">{{ props.item.playId }}</td>
+            <td class="text-xs-left">{{ props.item.amount }}</td>
+            <td class="text-xs-left">{{ props.item.price }}</td>
+            <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
             <td class="justify-center">
               <div v-if="props.item.status === '0'">
                 <v-btn icon class="mx-0" @click="buyFromSellList(props.item)">

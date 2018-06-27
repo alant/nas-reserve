@@ -45,7 +45,7 @@
             </td>
             <td class="text-xs-left">{{ props.item.amount }}</td>
             <td class="text-xs-left">{{ props.item.price }}</td>
-            <td class="text-xs-left">{{ props.item.time }}</td>
+            <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
           </template>
         </v-data-table>
       </v-flex>
@@ -67,7 +67,7 @@
             </td>
             <td class="text-xs-left">{{ props.item.amount }}</td>
             <td class="text-xs-left">{{ props.item.price }}</td>
-            <td class="text-xs-left">{{ props.item.time }}</td>
+            <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
           </template>
         </v-data-table>
       </v-flex>
