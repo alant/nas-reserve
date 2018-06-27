@@ -46,7 +46,7 @@ export default {
       };
       this.$neb.api
         .call(
-          this.$account.getAddressString(),
+          this.$account,
           this.$contracts[0],
           0,
           '0',
