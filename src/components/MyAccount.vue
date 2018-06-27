@@ -31,6 +31,7 @@
           {{ $t('message.orderDoneMsg') }}
         </v-card-text>
         <v-data-table :headers="[
+          { text: this.$t('message.coin'), value: 'coin'},
           { text: this.$t('message.orderType'), value: 'orderType' },
           { text: this.$t('message.amount'), value: 'amount' },
           { text: this.$t('message.price'), value: 'price' },
@@ -39,6 +40,7 @@
           :no-data-text="$t('message.noDataAvailable')"
           class="elevation-1">
           <template slot="items" slot-scope="props">
+            <td class="text-xs-left">{{ props.item.coin }}</td>
             <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
             </td>
             <td class="text-xs-left">{{ props.item.amount }}</td>
@@ -52,6 +54,7 @@
           {{ $t('message.orderPendingMsg') }}
         </v-card-text>
         <v-data-table :headers="[
+          { text: this.$t('message.coin'), value: 'coin'},
           { text: this.$t('message.orderType'), value: 'isBuy' },
           { text: this.$t('message.amount'), value: 'amount' },
           { text: this.$t('message.price'), value: 'price' },
@@ -59,6 +62,7 @@
           ]" :items="pendingOrders" hide-actions
           :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
           <template slot="items" slot-scope="props">
+            <td class="text-xs-left">{{ props.item.coin }}</td>
             <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
             </td>
             <td class="text-xs-left">{{ props.item.amount }}</td>
@@ -157,6 +161,7 @@ export default {
             for (let i = 0; i < result.length; i += 1) {
               const tmp = {};
               const currentOrder = result[i];
+              tmp.coin = 'NRT';
               tmp.isBuy = (currentOrder.type === '1');
               tmp.orderId = currentOrder.id;
               tmp.amount = 1;
