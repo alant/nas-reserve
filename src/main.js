@@ -56,7 +56,8 @@ const messages = {
       buyOrderType: 'Buy',
       sellOrderType: 'Sell',
       nrtAbout: 'NRT is the access token of Nas Reserve. Total amount is 500. Once a NRT is bought from the contract. The price will be inflated by 5%. The starting price is 0.025 NAS',
-      rmbAbout: 'RMBnt (RMB nas tether) is the tether token of RMB. The price of RMBnt is maintaind by NAS reserve buying and selling on the decentralized exchange.'
+      rmbAbout: 'RMBnt (RMB nas tether) is the tether token of RMB. The price of RMBnt is maintaind by NAS reserve buying and selling on the decentralized exchange.',
+      noDataAvailable: 'No data available'
     }
   },
   zh: {
@@ -99,7 +100,8 @@ const messages = {
       buyOrderType: '买进',
       sellOrderType: '卖出',
       nrtAbout: 'NRT (NAS Reserve Token) 来控制。 总发行量为 500 个。 起始价格为 0.025 NAS。NRT 的通货膨胀机制为每增加一个央行成员， NRT 价格上浮 5%。',
-      rmbAbout: 'RMBnt (RMB 锚定）价格与人民币价格锚定。通过市场买卖机制来调节。'
+      rmbAbout: 'RMBnt (RMB 锚定）价格与人民币价格锚定。通过市场买卖机制来调节。',
+      noDataAvailable: '空'
     }
   }
 };

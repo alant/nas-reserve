@@ -35,7 +35,9 @@
           { text: this.$t('message.amount'), value: 'amount' },
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
-          ]" :items="doneOrders" hide-actions class="elevation-1">
+          ]" :items="doneOrders" hide-actions
+          :no-data-text="$t('message.noDataAvailable')"
+          class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
             </td>
@@ -54,7 +56,8 @@
           { text: this.$t('message.amount'), value: 'amount' },
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
-          ]" :items="pendingOrders" hide-actions class="elevation-1">
+          ]" :items="pendingOrders" hide-actions
+          :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
             </td>
