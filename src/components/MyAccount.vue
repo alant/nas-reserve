@@ -132,12 +132,36 @@ export default {
         });
     },
 
+    getOrderEntry(currentOrder, isNRT) {
+      const tmp = {};
+      if (isNRT) {
+        tmp.coin = 'NRT';
+        tmp.amount = 1;
+      } else {
+        tmp.coin = 'RMBnt';
+        tmp.amount = tmp.account / 100;
+      }
+      tmp.isBuy = (currentOrder.type === '1');
+      tmp.orderId = currentOrder.id;
+      tmp.amount = 1;
+      const base = 10 ** 16;
+      tmp.price = currentOrder.price / base;
+      tmp.time = new Date(currentOrder.timeStamp * 1000);
+
+      return tmp;
+    },
+
     getMyOrders() {
       console.log(`=> myAccount getMyOrders: ${this.$account}`);
       const call = {
         function: 'getMyOrders',
         args: JSON.stringify([this.$account])
       };
+
+      const CompletedOrders = [];
+      const PendingOrders = [];
+      let doneCount = 0;
+
       this.$neb.api
         .call(
           this.$account,
@@ -149,36 +173,73 @@ export default {
           call
         )
         .then((resp) => {
-          console.log(`====> MyAccount getMyOrders : ${JSON.stringify(resp)}`);
+          console.log(`====> MyAccount NRT getMyOrders : ${JSON.stringify(resp)}`);
           if (resp.result.length === 0) {
             console.log('Exchange getBuyOrderIds result is empty');
           } else {
             const result = JSON.parse(resp.result);
             console.log(`=> => my NRT orders:: ${result}`);
 
-            const NRTCompletedOrders = [];
-            const NRTPendingOrders = [];
             for (let i = 0; i < result.length; i += 1) {
-              const tmp = {};
-              const currentOrder = result[i];
-              tmp.coin = 'NRT';
-              tmp.isBuy = (currentOrder.type === '1');
-              tmp.orderId = currentOrder.id;
-              tmp.amount = 1;
-              const base = 10 ** 16;
-              tmp.price = currentOrder.price / base;
-              tmp.time = new Date(currentOrder.timeStamp * 1000);
-              if (currentOrder.status === '0') {
-                NRTPendingOrders.push(tmp);
-              } else if (currentOrder.status === '1') {
-                NRTCompletedOrders.push(tmp);
+              const tmp = this.getOrderEntry(result[i], true);
+              if (result[i].status === '0') {
+                PendingOrders.push(tmp);
+              } else if (result[i].status === '1') {
+                CompletedOrders.push(tmp);
               } else {
                 console.log('Order is canceled');
               }
             }
 
-            this.doneOrders = NRTCompletedOrders;
-            this.pendingOrders = NRTPendingOrders;
+            doneCount += 1;
+            if (doneCount === 2) {
+              this.doneOrders = CompletedOrders;
+              this.pendingOrders = PendingOrders;
+            }
+          }
+
+          if (
+            resp.execute_err.length > 0 &&
+            resp.execute_err !== 'insufficient balance'
+          ) {
+            throw new Error(resp.execute_err);
+          }
+        });
+
+      this.$neb.api
+        .call(
+          this.$account,
+          this.$contracts[1],
+          0,
+          '0',
+          this.$gasPrice,
+          this.$gasLimit,
+          call
+        )
+        .then((resp) => {
+          console.log(`====> MyAccount RMB getMyOrders : ${JSON.stringify(resp)}`);
+          if (resp.result.length === 0) {
+            console.log('Exchange getBuyOrderIds result is empty');
+          } else {
+            const result = JSON.parse(resp.result);
+            console.log(`=> => my RMBnt orders:: ${result}`);
+
+            for (let i = 0; i < result.length; i += 1) {
+              const tmp = this.getOrderEntry(result[i], false);
+              if (result[i].status === '0') {
+                PendingOrders.push(tmp);
+              } else if (result[i].status === '1') {
+                CompletedOrders.push(tmp);
+              } else {
+                console.log('Order is canceled');
+              }
+            }
+
+            doneCount += 1;
+            if (doneCount === 2) {
+              this.doneOrders = CompletedOrders;
+              this.pendingOrders = PendingOrders;
+            }
           }
 
           if (
