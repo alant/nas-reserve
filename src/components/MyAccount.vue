@@ -148,9 +148,31 @@ export default {
           } else {
             const result = JSON.parse(resp.result);
             console.log(`=> => my NRT orders:: ${result}`);
-            // this.buyOrderIds = result;
-            // this.getOrdersDetail(result, '1');
+
+            const NRTCompletedOrders = [];
+            const NRTPendingOrders = [];
+            for (let i = 0; i < result.length; i += 1) {
+              const tmp = {};
+              const currentOrder = result[i];
+              tmp.isBuy = (currentOrder.type === '1');
+              tmp.orderId = currentOrder.id;
+              tmp.amount = 1;
+              const base = 10 ** 16;
+              tmp.price = currentOrder.price / base;
+              tmp.time = new Date(currentOrder.timeStamp * 1000);
+              if (currentOrder.status === '0') {
+                NRTPendingOrders.push(tmp);
+              } else if (currentOrder.status === '1') {
+                NRTCompletedOrders.push(tmp);
+              } else {
+                console.log('Order is canceled');
+              }
+            }
+
+            this.doneOrders = NRTCompletedOrders;
+            this.pendingOrders = NRTPendingOrders;
           }
+
           if (
             resp.execute_err.length > 0 &&
             resp.execute_err !== 'insufficient balance'

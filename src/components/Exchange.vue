@@ -212,30 +212,8 @@ export default {
         { text: 'RMBnt', value: '1' }
       ],
       alert: true,
-      buyOrders: [
-        {
-          playId: 'Player #411',
-          playerAddr: 'n1b...',
-          orderId: 0,
-          amount: 100,
-          price: 1.59,
-          time: '1529989992092',
-          type: '',
-          status: 0
-        }
-      ],
-      sellOrders: [
-        {
-          playId: 'Play #511',
-          playerAddr: 'n1b...',
-          orderId: 0,
-          amount: 200,
-          price: 0.11,
-          time: '1529989992092',
-          type: '',
-          status: 0
-        }
-      ],
+      buyOrders: [],
+      sellOrders: [],
       checkTxDialog: false,
       txData: null,
       currentContract: this.$contracts[0],
