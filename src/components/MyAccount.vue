@@ -36,9 +36,7 @@
           { text: this.$t('message.amount'), value: 'amount' },
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
-          ]" :items="doneOrders" hide-actions
-          :no-data-text="$t('message.noDataAvailable')"
-          class="elevation-1">
+          ]" :items="doneOrders" hide-actions :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-left">{{ props.item.coin }}</td>
             <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
@@ -46,10 +44,13 @@
             <td class="text-xs-left">{{ props.item.amount }}</td>
             <td class="text-xs-left">{{ props.item.price }}</td>
             <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
+            <div v-if="props.item.status === '1'">
+              <v-icon light right>check_circle</v-icon>
+            </div>
           </template>
         </v-data-table>
       </v-flex>
-      <v-flex xs6>
+      <v-flex xs7>
         <v-card-text class="text-md-left">
           {{ $t('message.orderPendingMsg') }}
         </v-card-text>
@@ -59,8 +60,7 @@
           { text: this.$t('message.amount'), value: 'amount' },
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
-          ]" :items="pendingOrders" hide-actions
-          :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
+          ]" :items="pendingOrders" hide-actions :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-left">{{ props.item.coin }}</td>
             <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
@@ -68,22 +68,34 @@
             <td class="text-xs-left">{{ props.item.amount }}</td>
             <td class="text-xs-left">{{ props.item.price }}</td>
             <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
+            <td class="text-xs-left">
+              <v-btn icon class="mx-0" @click="cancelOrder(props.item)">
+                {{ $t("message.cancel") }}
+              </v-btn>
+            </td>
           </template>
         </v-data-table>
       </v-flex>
     </v-layout>
+    <check-tx v-model="checkTxDialog" :TXData="txData" />
   </v-container>
 </template>
 
 <script>
+import CheckTX from './CheckTX';
+
 export default {
   name: 'MyInfo',
+  components: {
+    'check-tx': CheckTX
+  },
   data() {
     return {
       nrtBalance: 0,
       rmbBalance: 0,
       doneOrders: [],
-      pendingOrders: []
+      pendingOrders: [],
+      checkTxDialog: false
     };
   },
   methods: {
@@ -125,9 +137,9 @@ export default {
           //   throw new Error('访问合约API出错');
           // }
           if (isNRT) {
-            this.nrtBalance = resp.result;
+            this.nrtBalance = JSON.parse(resp.result);
           } else {
-            this.rmbBalance = resp.result;
+            this.rmbBalance = JSON.parse(resp.result) / 100;
           }
         });
     },
@@ -139,15 +151,14 @@ export default {
         tmp.amount = 1;
       } else {
         tmp.coin = 'RMBnt';
-        tmp.amount = tmp.account / 100;
+        tmp.amount = currentOrder.orderAmount / 100;
       }
-      tmp.isBuy = (currentOrder.type === '1');
+      tmp.isBuy = currentOrder.type === '1';
       tmp.orderId = currentOrder.id;
-      tmp.amount = 1;
       const base = 10 ** 16;
       tmp.price = currentOrder.price / base;
       tmp.time = new Date(currentOrder.timeStamp * 1000);
-
+      tmp.status = currentOrder.status;
       return tmp;
     },
 
@@ -173,21 +184,21 @@ export default {
           call
         )
         .then((resp) => {
-          console.log(`====> MyAccount NRT getMyOrders : ${JSON.stringify(resp)}`);
+          console.log(
+            `====> MyAccount NRT getMyOrders : ${JSON.stringify(resp)}`
+          );
           if (resp.result.length === 0) {
             console.log('Exchange getBuyOrderIds result is empty');
           } else {
             const result = JSON.parse(resp.result);
-            console.log(`=> => my NRT orders:: ${result}`);
+            // console.log(`=> => my NRT orders:: ${result}`);
 
             for (let i = 0; i < result.length; i += 1) {
               const tmp = this.getOrderEntry(result[i], true);
               if (result[i].status === '0') {
                 PendingOrders.push(tmp);
-              } else if (result[i].status === '1') {
-                CompletedOrders.push(tmp);
               } else {
-                console.log('Order is canceled');
+                CompletedOrders.push(tmp);
               }
             }
 
@@ -217,15 +228,18 @@ export default {
           call
         )
         .then((resp) => {
-          console.log(`====> MyAccount RMB getMyOrders : ${JSON.stringify(resp)}`);
+          console.log(
+            `====> MyAccount RMB getMyOrders : ${JSON.stringify(resp)}`
+          );
           if (resp.result.length === 0) {
             console.log('Exchange getBuyOrderIds result is empty');
           } else {
             const result = JSON.parse(resp.result);
-            console.log(`=> => my RMBnt orders:: ${result}`);
+            // console.log(`=> => my RMBnt orders:: ${result}`);
 
             for (let i = 0; i < result.length; i += 1) {
               const tmp = this.getOrderEntry(result[i], false);
+
               if (result[i].status === '0') {
                 PendingOrders.push(tmp);
               } else if (result[i].status === '1') {
@@ -271,6 +285,31 @@ export default {
           time: '6/22/2018, 9:05:00 PM'
         }
       ];
+    },
+    cancelOrder(entry) {
+      console.log(`canceling: ${JSON.stringify(entry)}`);
+      const contract =
+        entry.coin === 'NRT' ? this.$contracts[0] : this.$contracts[1];
+      const callArgs = JSON.stringify([entry.orderId]);
+      const callFunction = 'cancelOrder';
+      this.$nebPay.call(contract, 0, callFunction, callArgs, {
+        listener: (data) => {
+          if (
+            JSON.stringify(data) === '"Error: Transaction rejected by user"'
+          ) {
+            console.log('=> transaction rejected');
+            return;
+          }
+          if (data.txhash) {
+            const txhash = data.txhash;
+            console.log(`=> this transaction's hash: ${txhash}`);
+            this.txData = data;
+            this.checkTxDialog = true;
+          } else {
+            console.log('=> transaction failed');
+          }
+        }
+      });
     }
   },
 

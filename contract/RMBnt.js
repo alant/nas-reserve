@@ -395,6 +395,7 @@ RMBntContract.prototype = {
     makerVolume = makerVolume.add(orderValue);
     this.tradersDetail.put(from, taker);
     this.tradersDetail.put(order.maker, maker);
+    order.taker = from;
     this.orders.put(_id, order);
   },
 
