@@ -4,7 +4,9 @@
       <v-flex xs3>
         <v-card justify-center>
           <v-card-text class="px-0">
-            {{ $t('message.myAccountBalance') }}
+            {{ $t('message.myAccountAddr') }}
+            <br> {{ this.$account.substring(0, 4) }}...{{ this.$account.substr(this.$account.length - 4) }}
+            <br> {{ $t('message.myAccountBalance') }}
           </v-card-text>
           <v-layout row>
             <v-flex xs3>

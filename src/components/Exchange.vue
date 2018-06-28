@@ -174,6 +174,7 @@
 <script>
 import axios from 'axios';
 import { BigNumber } from 'bignumber.js';
+import Vue from 'vue';
 import CheckTX from './CheckTX';
 import CurrentOrder from './CurrentOrder';
 import EventBus from '../event-bus';
@@ -186,11 +187,13 @@ export default {
     selectedToken: function(newVal, oldVal) {
       console.log('=> selection changed: ', newVal, ' | was: ', oldVal);
       if (newVal === '0') {
-        this.getPrice();
+        this.getNRTPrice();
         this.currentContract = this.$contracts[0];
+        Vue.localStorage.set('selectedToken', '0');
       } else {
         this.getCMPrice();
         this.currentContract = this.$contracts[1];
+        Vue.localStorage.set('selectedToken', '1');
       }
       this.getOrders();
     },
@@ -208,7 +211,7 @@ export default {
       currentPrice: 0,
       sellNumbers: 1,
       buyNumbers: 1,
-      selectedToken: '0',
+      selectedToken: Vue.localStorage.get('selectedToken') || '0',
       supportedTokens: [
         { text: 'NRT', value: '0' },
         { text: 'RMBnt', value: '1' }
@@ -218,7 +221,7 @@ export default {
       sellOrders: [],
       checkTxDialog: false,
       txData: null,
-      currentContract: this.$contracts[0],
+      currentContract: this.selectedToken === '0' ? this.$contracts[0] : this.$contracts[1],
       orderDialog: false,
       curOrder: null,
       lang: this.$i18n.locale
@@ -282,7 +285,7 @@ export default {
         }
       });
     },
-    getPrice() {
+    getNRTPrice() {
       console.log('=> exchange getPrice');
       const call = {
         function: 'getCurrentPrice',
@@ -291,7 +294,7 @@ export default {
       this.$neb.api
         .call(
           this.$account,
-          this.currentContract,
+          this.$contracts[0],
           0,
           '0',
           this.$gasPrice,
@@ -536,7 +539,7 @@ export default {
   },
   beforeMount() {
     console.log('=> exchange beforeMOunt');
-    this.getPrice();
+    this.getNRTPrice();
     this.getOrders();
   },
   mounted() {

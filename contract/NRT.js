@@ -387,6 +387,7 @@ NRTContract.prototype = {
     }
 
     // mark contract as finished
+    order.taker = from;
     order.status = '1';
     this.orders.put(_id, order);
   },
@@ -462,6 +463,7 @@ NRTContract.prototype = {
     var config = this.getConfig();
     return config.orderSeq;
   },
+
   getShareHolderDetail: function(address) {
     var from = Blockchain.transaction.from;
     var config = this.getConfig();
@@ -530,8 +532,8 @@ NRTContract.prototype = {
       if (!result) {
         throw new Error(
           'distributeProfit failed at: ' +
-            i +
-            '. consider manually doing it for the rest'
+            i + ', ' + shareHolder +
+            ' . Consider manually doing it for the rest'
         );
       }
     }

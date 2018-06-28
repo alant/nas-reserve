@@ -62,6 +62,7 @@ const messages = {
       coin: 'Coin',
       cancel: 'CANCEL',
       orderTakenMsg: 'Taken Orders',
+      myAccountAddr: 'Wallet Address'
     }
   },
   zh: {
@@ -108,7 +109,8 @@ const messages = {
       noDataAvailable: '空',
       coin: '货币',
       cancel: '取消',
-      orderTakenMsg: '已参与订单'
+      orderTakenMsg: '已参与订单',
+      myAccountAddr: '钱包地址'
     }
   }
 };
