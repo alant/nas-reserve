@@ -20,6 +20,7 @@
     "nebpay": "0.0.6",
     "nebulas": "^0.5.2",
     "vue": "^2.5.2",
+    "vue-analytics": "^5.12.2",
     "vue-i18n": "^7.8.1",
     "vue-localstorage": "^0.6.2",
     "vue-router": "^3.0.1",

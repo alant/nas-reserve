@@ -1,12 +1,15 @@
 import Vue from 'vue';
 import Router from 'vue-router';
+import VueAnalytics from 'vue-analytics';
+
 import About from '@/components/About';
 import Buy from '@/components/Buy';
 import Exchange from '@/components/Exchange';
 import MyAccount from '@/components/MyAccount';
 
 Vue.use(Router);
-export default new Router({
+
+const router = new Router({
   routes: [
     {
       path: '/',
@@ -30,3 +33,9 @@ export default new Router({
     }
   ]
 });
+
+Vue.use(VueAnalytics, {
+  id: 'UA-121587832-1',
+  router
+});
+export default router;

@@ -5,6 +5,7 @@ import Vuetify from 'vuetify';
 import 'vuetify/dist/vuetify.min.css';
 import VueI18n from 'vue-i18n';
 import VueLocalStorage from 'vue-localstorage';
+
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import App from './App';
 import router from './router';
@@ -51,15 +52,16 @@ const messages = {
       buyOrders: 'Buy Orders',
       sellOrders: 'Sell Orders',
       orderType: 'Type',
-      orderDoneMsg: 'Completed Orders',
-      orderPendingMsg: 'Pending Orders',
+      orderDoneMsg: 'Closed Orders',
+      orderPendingMsg: 'Open Orders',
       buyOrderType: 'Buy',
       sellOrderType: 'Sell',
       nrtAbout: 'NRT is the access token of Nas Reserve. Total amount is 500. Once a NRT is bought from the contract. The price will be inflated by 5%. The starting price is 0.025 NAS',
       rmbAbout: 'RMBnt (RMB nas tether) is the tether token of RMB. The price of RMBnt is maintaind by NAS reserve buying and selling on the decentralized exchange.',
       noDataAvailable: 'No data available',
       coin: 'Coin',
-      cancel: 'CANCEL'
+      cancel: 'CANCEL',
+      orderTakenMsg: 'Taken Orders',
     }
   },
   zh: {
@@ -97,15 +99,16 @@ const messages = {
       buyOrders: '买单',
       sellOrders: '卖单',
       orderType: '交易类型',
-      orderDoneMsg: '已完成订单',
-      orderPendingMsg: '等待中订单',
+      orderDoneMsg: '已结束订单',
+      orderPendingMsg: '进行中订单',
       buyOrderType: '买进',
       sellOrderType: '卖出',
       nrtAbout: 'NRT (NAS Reserve Token) 来控制。 总发行量为 500 个。 起始价格为 0.025 NAS。NRT 的通货膨胀机制为每增加一个央行成员， NRT 价格上浮 5%。',
       rmbAbout: 'RMBnt (RMB 锚定）价格与人民币价格锚定。通过市场买卖机制来调节。',
       noDataAvailable: '空',
       coin: '货币',
-      cancel: '取消'
+      cancel: '取消',
+      orderTakenMsg: '已参与订单'
     }
   }
 };

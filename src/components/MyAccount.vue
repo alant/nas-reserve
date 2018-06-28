@@ -26,30 +26,6 @@
       </v-flex>
     </v-layout>
     <v-layout row wrap align-center justify-center>
-      <v-flex xs6>
-        <v-card-text class="text-md-left">
-          {{ $t('message.orderDoneMsg') }}
-        </v-card-text>
-        <v-data-table :headers="[
-          { text: this.$t('message.coin'), value: 'coin'},
-          { text: this.$t('message.orderType'), value: 'orderType' },
-          { text: this.$t('message.amount'), value: 'amount' },
-          { text: this.$t('message.price'), value: 'price' },
-          { text: this.$t('message.time'), value: 'time' },
-          ]" :items="doneOrders" hide-actions :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
-          <template slot="items" slot-scope="props">
-            <td class="text-xs-left">{{ props.item.coin }}</td>
-            <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
-            </td>
-            <td class="text-xs-left">{{ props.item.amount }}</td>
-            <td class="text-xs-left">{{ props.item.price }}</td>
-            <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
-            <div v-if="props.item.status === '1'">
-              <v-icon light right>check_circle</v-icon>
-            </div>
-          </template>
-        </v-data-table>
-      </v-flex>
       <v-flex xs7>
         <v-card-text class="text-md-left">
           {{ $t('message.orderPendingMsg') }}
@@ -76,6 +52,51 @@
           </template>
         </v-data-table>
       </v-flex>
+      <v-flex xs6>
+        <v-card-text class="text-md-left">
+          {{ $t('message.orderDoneMsg') }}
+        </v-card-text>
+        <v-data-table :headers="[
+          { text: this.$t('message.coin'), value: 'coin'},
+          { text: this.$t('message.orderType'), value: 'orderType' },
+          { text: this.$t('message.amount'), value: 'amount' },
+          { text: this.$t('message.price'), value: 'price' },
+          { text: this.$t('message.time'), value: 'time' },
+          ]" :items="doneOrders" hide-actions :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
+          <template slot="items" slot-scope="props">
+            <td class="text-xs-left">{{ props.item.coin }}</td>
+            <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
+            </td>
+            <td class="text-xs-left">{{ props.item.amount }}</td>
+            <td class="text-xs-left">{{ props.item.price }}</td>
+            <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
+            <div v-if="props.item.status === '1'">
+              <v-icon light right>check_circle</v-icon>
+            </div>
+          </template>
+        </v-data-table>
+      </v-flex>
+      <v-flex xs6>
+        <v-card-text class="text-md-left">
+          {{ $t('message.orderTakenMsg') }}
+        </v-card-text>
+        <v-data-table :headers="[
+          { text: this.$t('message.coin'), value: 'coin'},
+          { text: this.$t('message.orderType'), value: 'orderType' },
+          { text: this.$t('message.amount'), value: 'amount' },
+          { text: this.$t('message.price'), value: 'price' },
+          { text: this.$t('message.time'), value: 'time' },
+          ]" :items="takenOrders" hide-actions :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
+          <template slot="items" slot-scope="props">
+            <td class="text-xs-left">{{ props.item.coin }}</td>
+            <td class="text-xs-left">{{ props.item.isBuy ? $t('message.buyOrderType'): $t('message.sellOrderType') }}
+            </td>
+            <td class="text-xs-left">{{ props.item.amount }}</td>
+            <td class="text-xs-left">{{ props.item.price }}</td>
+            <td class="text-xs-left">{{ $d(props.item.time, 'long', this.lang) }}</td>
+          </template>
+        </v-data-table>
+      </v-flex>
     </v-layout>
     <check-tx v-model="checkTxDialog" :TXData="txData" />
   </v-container>
@@ -95,6 +116,7 @@ export default {
       rmbBalance: 0,
       doneOrders: [],
       pendingOrders: [],
+      takenOrders: [],
       checkTxDialog: false
     };
   },
@@ -159,6 +181,8 @@ export default {
       tmp.price = currentOrder.price / base;
       tmp.time = new Date(currentOrder.timeStamp * 1000);
       tmp.status = currentOrder.status;
+      tmp.taker = currentOrder.taker;
+      tmp.maker = currentOrder.maker;
       return tmp;
     },
 
@@ -171,6 +195,7 @@ export default {
 
       const CompletedOrders = [];
       const PendingOrders = [];
+      const TakenOrders = [];
       let doneCount = 0;
 
       this.$neb.api
@@ -195,7 +220,9 @@ export default {
 
             for (let i = 0; i < result.length; i += 1) {
               const tmp = this.getOrderEntry(result[i], true);
-              if (result[i].status === '0') {
+              if (tmp.taker === this.$account) {
+                TakenOrders.push(tmp);
+              } else if (result[i].status === '0') {
                 PendingOrders.push(tmp);
               } else {
                 CompletedOrders.push(tmp);
@@ -206,6 +233,7 @@ export default {
             if (doneCount === 2) {
               this.doneOrders = CompletedOrders;
               this.pendingOrders = PendingOrders;
+              this.takenOrders = TakenOrders;
             }
           }
 
@@ -239,13 +267,12 @@ export default {
 
             for (let i = 0; i < result.length; i += 1) {
               const tmp = this.getOrderEntry(result[i], false);
-
-              if (result[i].status === '0') {
+              if (tmp.taker === this.$account) {
+                TakenOrders.push(tmp);
+              } else if (result[i].status === '0') {
                 PendingOrders.push(tmp);
-              } else if (result[i].status === '1') {
-                CompletedOrders.push(tmp);
               } else {
-                console.log('Order is canceled');
+                CompletedOrders.push(tmp);
               }
             }
 
@@ -253,6 +280,7 @@ export default {
             if (doneCount === 2) {
               this.doneOrders = CompletedOrders;
               this.pendingOrders = PendingOrders;
+              this.takenOrders = TakenOrders;
             }
           }
 

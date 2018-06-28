@@ -15,7 +15,14 @@
           <v-list-tile-content>{{ $t('message.about') }}</v-list-tile-content>
         </v-list-tile>
         <v-list-tile v-on:click="switchLocale">
-          <v-list-tile-content> {{ lang }}</v-list-tile-content>
+          <v-list-tile-content>
+            <div v-if="lang === 'en'">
+              中文
+            </div>
+            <div v-else-if="lang === 'zh'">
+              English
+            </div>
+          </v-list-tile-content>
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
