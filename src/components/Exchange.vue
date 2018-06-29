@@ -112,8 +112,7 @@
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
           { text: '', value: 'playId', sortable: false }
-          ]" :items="buyOrders" hide-actions
-          :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
+          ]" :items="buyOrders" hide-actions :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-left">{{ props.item.playId }}</td>
             <td class="text-xs-left">{{ props.item.amount }}</td>
@@ -145,8 +144,7 @@
           { text: this.$t('message.price'), value: 'price' },
           { text: this.$t('message.time'), value: 'time' },
           { text: '', value: 'playId', sortable: false }
-          ]" :items="sellOrders" hide-actions
-          :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
+          ]" :items="sellOrders" hide-actions :no-data-text="$t('message.noDataAvailable')" class="elevation-1">
           <template slot="items" slot-scope="props">
             <td class="text-xs-left">{{ props.item.playId }}</td>
             <td class="text-xs-left">{{ props.item.amount }}</td>
@@ -221,7 +219,8 @@ export default {
       sellOrders: [],
       checkTxDialog: false,
       txData: null,
-      currentContract: this.selectedToken === '0' ? this.$contracts[0] : this.$contracts[1],
+      currentContract:
+        this.selectedToken === '0' ? this.$contracts[0] : this.$contracts[1],
       orderDialog: false,
       curOrder: null,
       lang: this.$i18n.locale
@@ -529,7 +528,11 @@ export default {
   },
   beforeMount() {
     // console.log('=> exchange beforeMOunt');
-    this.getNRTPrice();
+    if (this.selectedToken === '0') {
+      this.getNRTPrice();
+    } else {
+      this.getCMPrice();
+    }
     this.getOrders();
   },
   mounted() {
