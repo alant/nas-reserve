@@ -124,9 +124,9 @@ export default {
           this.extSnackbar = true;
         }
       }
-      console.log('======> extension not found');
+      // console.log('======> extension not found');
     } else {
-      console.log('======> extension yeah! <=======');
+      // console.log('======> extension yeah! <=======');
     }
   },
   methods: {
