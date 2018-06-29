@@ -58,7 +58,8 @@ const messages = {
       buyOrderType: 'Buy',
       sellOrderType: 'Sell',
       nrtAbout:
-        'NRT is the access token of Nas Reserve. Total amount is 500. Once a NRT is bought from the contract. The price will be inflated by 5%. The starting price is 0.025 NAS',
+        `NRT is the access token of Nas Reserve. Total amount is 500. Once a NRT is bought from the contract. 
+        The price will be inflated by 5%. The starting price is 0.025 NAS. Each wallet holder can only buy one NRT. Please do NOT make a duplicate buy order in the exchange if you already bought one.`,
       rmbAbout:
         'RMBnt (RMB nas tether) is the tether token of RMB. The price of RMBnt is maintaind by NAS reserve buying and selling on the decentralized exchange.',
       noDataAvailable: 'No data available',
@@ -66,7 +67,9 @@ const messages = {
       cancel: 'CANCEL',
       orderTakenMsg: 'Taken Orders',
       myAccountAddr: 'Wallet Address',
-      weChatSB: 'Looks like you\'re using Wechat. It may not support NAS Nano yet. Click the 3 dots on top right corner. Open in Safari or another browser.'
+      weChatSB: 'Looks like you\'re using Wechat. It may not support NAS Nano yet. Click the 3 dots on top right corner. Open in Safari or another browser.',
+      extensionSB: 'Looks like you don\'t have NasExtWallet extension. Please install NasExtWallet extension on chrome webstore',
+      nanoSB: 'Make sure you have Nas Nano app installed on your phone'
     }
   },
   zh: {
@@ -111,7 +114,7 @@ const messages = {
       sellOrderType: '卖出',
       nrtAbout: `NRT (NAS Reserve Token) 来控制。 总发行量为 500 个。 起始价格为 0.025 NAS。
                  NRT 的通货膨胀机制为每从智能合约（菜单栏中的购买渠道）购买一个， NRT 价格上浮 5%。
-                 NRT 可在本交易所自由交易`,
+                 NRT 可在本交易所自由交易。请注意，每个钱包限购一个 NRT。 如已经买过一个 NRT， 请勿在交易所重复下单购买 NRT。`,
       rmbAbout:
         'RMBnt (RMB 锚定）价格与人民币价格锚定。通过市场买卖机制来调节。',
       noDataAvailable: '空',
@@ -119,7 +122,9 @@ const messages = {
       cancel: '取消',
       orderTakenMsg: '已参与订单',
       myAccountAddr: '钱包地址',
-      weChatSB: '貌似微信不支持 NAS nano 钱包, 请点击右上方的三个点图标, 选择用 Safari 或其他浏览器打开'
+      weChatSB: '貌似微信不支持 NAS nano 钱包, 请点击右上方的三个点图标, 选择用 Safari 或其他浏览器打开',
+      extensionSB: '貌似您没装星云的插件 NasExtWallet，如需参与央行及稳定币的交易，请安装 NasExtWallet 插件',
+      nanoSB: '请确保移动端安装了 Nas Nano 钱包'
     }
   }
 };
