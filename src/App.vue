@@ -72,6 +72,12 @@
         <span>{{ $t("message.appTitle") }} 2018</span>
       </v-layout>
     </v-footer>
+
+    <v-snackbar :timeout="5000" :top="true" :vertical="true" v-model="sbSnackbar">
+      {{ $t("message.weChatSB") }}
+      <v-btn flat color="pink" @click.native="sbSnackbar = false">Close</v-btn>
+    </v-snackbar>
+
   </v-app>
 </template>
 
@@ -84,7 +90,8 @@ export default {
   data() {
     return {
       sidebar: false,
-      lang: this.$i18n.locale
+      lang: this.$i18n.locale,
+      sbSnackbar: navigator.userAgent.match(/MicroMessenger/ig)
     };
   },
   methods: {

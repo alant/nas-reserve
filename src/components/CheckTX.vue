@@ -39,7 +39,7 @@ export default {
   methods: {
     checkTransaction(seq, hash) {
       return new Promise((resolve, reject) => {
-        console.log(`==>checkTransaction #: ${seq}`);
+        // console.log(`==>checkTransaction #: ${seq}`);
         this.$neb.api
           .getTransactionReceipt(hash)
           .then((resp) => {
@@ -55,7 +55,7 @@ export default {
               this.confirmMsg = this.$t('message.failedTX') + hash;
               reject(false);
             } else {
-              console.log(`=> transaction succeeded: ${JSON.stringify(resp)}`);
+              // console.log(`=> transaction succeeded: ${JSON.stringify(resp)}`);
               // Vue.prototype.$myAccountAddr = resp.from;
               // Vue.localStorage.set('from', resp.from);
               // console.log('transaction succeeded: ');
@@ -65,8 +65,8 @@ export default {
             }
           })
           .catch((err) => {
-            console.log(`getTransactionReceipt error: ${err}`);
-            this.confirmMsg = 'getTransactionReceipt error';
+            // console.log(`getTransactionReceipt error: ${err}`);
+            this.confirmMsg = `getTransactionReceipt error: ${JSON.stringify(err)}`;
             reject(false);
           });
       });

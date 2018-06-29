@@ -29,7 +29,8 @@ const messages = {
       buyBtn: 'Buy Now',
       selectCoin: 'Select the coin to trade',
       nasrdesc: `NAS reserve is a reserve bank run by its constituents.
-                There are 500 membership avaiable. `,
+                There are 500 membership avaiable. Once a NRT is bought from the contract, the price
+                 will be inflated by 5%. The starting price is 0.025 NAS `,
       pricenow: 'The price of a NRT right now is',
       confirming: 'Confirm Transaction',
       confirmingText: 'Checking transaction hash on blockchain...',
@@ -56,13 +57,16 @@ const messages = {
       orderPendingMsg: 'Open Orders',
       buyOrderType: 'Buy',
       sellOrderType: 'Sell',
-      nrtAbout: 'NRT is the access token of Nas Reserve. Total amount is 500. Once a NRT is bought from the contract. The price will be inflated by 5%. The starting price is 0.025 NAS',
-      rmbAbout: 'RMBnt (RMB nas tether) is the tether token of RMB. The price of RMBnt is maintaind by NAS reserve buying and selling on the decentralized exchange.',
+      nrtAbout:
+        'NRT is the access token of Nas Reserve. Total amount is 500. Once a NRT is bought from the contract. The price will be inflated by 5%. The starting price is 0.025 NAS',
+      rmbAbout:
+        'RMBnt (RMB nas tether) is the tether token of RMB. The price of RMBnt is maintaind by NAS reserve buying and selling on the decentralized exchange.',
       noDataAvailable: 'No data available',
       coin: 'Coin',
       cancel: 'CANCEL',
       orderTakenMsg: 'Taken Orders',
-      myAccountAddr: 'Wallet Address'
+      myAccountAddr: 'Wallet Address',
+      weChatSB: 'Looks like you\'re using Wechat. It may not support NAS Nano yet. Click the 3 dots on top right corner. Open in Safari or another browser.'
     }
   },
   zh: {
@@ -76,8 +80,9 @@ const messages = {
       selectCoin: '选择交易的币种',
       nasrdesc: `星云央行是一个由央行成员运作的央行。 负责发行稳定币。
                 成员的有效性由 NRT (NAS Reserve Token) 来控制。 总发行量为 500 个。 起始价格为 0.025 NAS。<br>
-                NRT 的通货膨胀机制为每增加一个央行成员， NRT 价格上浮 5%。
-                NRT 持有者将共同制定央行发币和回购的数额等运营策略。并获得交易所利润的回馈。`,
+                NRT 的通货膨胀机制为每从智能合约（菜单栏中的购买渠道）购买一个， NRT 价格上浮 5%。
+                NRT 持有者将共同制定央行发币和回购的数额等运营策略。并获得交易所利润的回馈。
+                NRT 可在本交易所自由交易`,
       pricenow: '当前 NRT 的价格为',
       confirming: '交易确认',
       confirmingText: '正在查询交易打包状态...',
@@ -104,13 +109,17 @@ const messages = {
       orderPendingMsg: '进行中订单',
       buyOrderType: '买进',
       sellOrderType: '卖出',
-      nrtAbout: 'NRT (NAS Reserve Token) 来控制。 总发行量为 500 个。 起始价格为 0.025 NAS。NRT 的通货膨胀机制为每增加一个央行成员， NRT 价格上浮 5%。',
-      rmbAbout: 'RMBnt (RMB 锚定）价格与人民币价格锚定。通过市场买卖机制来调节。',
+      nrtAbout: `NRT (NAS Reserve Token) 来控制。 总发行量为 500 个。 起始价格为 0.025 NAS。
+                 NRT 的通货膨胀机制为每从智能合约（菜单栏中的购买渠道）购买一个， NRT 价格上浮 5%。
+                 NRT 可在本交易所自由交易`,
+      rmbAbout:
+        'RMBnt (RMB 锚定）价格与人民币价格锚定。通过市场买卖机制来调节。',
       noDataAvailable: '空',
       coin: '货币',
       cancel: '取消',
       orderTakenMsg: '已参与订单',
-      myAccountAddr: '钱包地址'
+      myAccountAddr: '钱包地址',
+      weChatSB: '貌似微信不支持 NAS nano 钱包, 请点击右上方的三个点图标, 选择用 Safari 或其他浏览器打开'
     }
   }
 };
@@ -179,20 +188,8 @@ const gasLimit = 200000;
 const gasPrice = 1000000;
 
 const accountInj = new Wallet.Account(newAccountId);
-console.log(`testAccount is: ${accountInj.getAddressString()}`);
+// console.log(`testAccount is: ${accountInj.getAddressString()}`);
 
-if (!Util.isChromeExtensionInstalled()) {
-  console.log('Extension is not installed.');
-  Vue.prototype.$account = accountInj.getAddressString();
-} else {
-  Util.loadAccountAddress();
-  const userAddr = Vue.localStorage.get('accountAddr');
-  if (userAddr) {
-    Vue.prototype.$account = userAddr;
-  } else {
-    Vue.prototype.$account = accountInj.getAddressString();
-  }
-}
 // Vue.prototype.$account = accountInj.getAddressString();
 Vue.prototype.$neb = Util.neb;
 Vue.prototype.$contracts = Util.contracts;
@@ -200,6 +197,19 @@ Vue.prototype.$nebPay = nebPay;
 Vue.prototype.$gasLimit = gasLimit;
 Vue.prototype.$gasPrice = gasPrice;
 Vue.prototype.$Unit = Wallet.Unit;
+if (Util.isChromeExtensionInstalled()) {
+  Util.loadAccountAddress().then((addr) => {
+    Vue.prototype.$account = addr;
+  });
+}
+if (!Vue.prototype.$account) {
+  const userAddr = Vue.localStorage.get('accountAddr');
+  if (userAddr) {
+    Vue.prototype.$account = userAddr;
+  } else {
+    Vue.prototype.$account = accountInj.getAddressString();
+  }
+}
 
 /* eslint-disable no-new */
 new Vue({

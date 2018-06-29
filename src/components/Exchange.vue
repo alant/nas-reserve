@@ -185,7 +185,7 @@ export default {
     // disable lint here because arrow function doesn't get this context
     /* eslint-disable */
     selectedToken: function(newVal, oldVal) {
-      console.log('=> selection changed: ', newVal, ' | was: ', oldVal);
+      // console.log('=> selection changed: ', newVal, ' | was: ', oldVal);
       if (newVal === '0') {
         this.getNRTPrice();
         this.currentContract = this.$contracts[0];
@@ -239,14 +239,12 @@ export default {
   },
   methods: {
     buyToken() {
-      console.log(
-        `Buy ${this.buyNumbers} tokens is called. ${this.e1} is selected`
-      );
+      // console.log(`Buy ${this.buyNumbers} tokens is called. ${this.e1} is selected`);
       const value = new BigNumber(this.totalNASBuy.toString());
       this.newOrder('1', value);
     },
     sellToken() {
-      console.log(`Sell ${this.sellNumbers} tokens is called.`);
+      // console.log(`Sell ${this.sellNumbers} tokens is called.`);
       this.newOrder('2', 0);
     },
     newOrder(type, value) {
@@ -271,22 +269,22 @@ export default {
           if (
             JSON.stringify(data) === '"Error: Transaction rejected by user"'
           ) {
-            console.log('=> transaction rejected');
+            // console.log('=> transaction rejected');
             return;
           }
           if (data.txhash) {
-            const txhash = data.txhash;
-            console.log(`=> this transaction's hash: ${txhash}`);
+            // const txhash = data.txhash;
+            // console.log(`=> this transaction's hash: ${txhash}`);
             this.txData = data;
             this.checkTxDialog = true;
           } else {
-            console.log('=> transaction failed');
+            // console.log('=> transaction failed');
           }
         }
       });
     },
     getNRTPrice() {
-      console.log('=> exchange getPrice');
+      // console.log('=> exchange getPrice');
       const call = {
         function: 'getCurrentPrice',
         args: '[]'
@@ -302,9 +300,9 @@ export default {
           call
         )
         .then((resp) => {
-          console.log(`====> exchange getprice : ${JSON.stringify(resp)}`);
+          // console.log(`====> exchange getprice : ${JSON.stringify(resp)}`);
           if (resp.result.length === 0) {
-            console.log('Exchange getBuyOrderIds result is empty');
+            // console.log('Exchange getBuyOrderIds result is empty');
           } else {
             const nasBase = 10 ** 18;
             const result = JSON.parse(resp.result) / nasBase;
@@ -326,14 +324,10 @@ export default {
           (resp) => {
             this.loading = false;
             const RMBNAS = resp.data.data.quotes.CNY.price;
-            console.log(
-              `=> axio return: ${JSON.stringify(
-                resp.data.data.quotes.CNY.price
-              )}`
-            );
+            // console.log(`=> axio return: ${JSON.stringify(resp.data.data.quotes.CNY.price)}`);
             this.currentPrice = 1 / RMBNAS;
             const decNum = `${this.currentPrice}`.split('.')[1].length;
-            console.log(`dec number ====> : ${decNum}`);
+            // console.log(`dec number ====> : ${decNum}`);
             if (decNum > 9) {
               this.currentPrice = this.currentPrice.toFixed(9);
             }
@@ -345,7 +339,7 @@ export default {
         );
     },
     buyFromSellList(entry) {
-      console.log(`==>buying: ${JSON.stringify(entry)}`);
+      // console.log(`==>buying: ${JSON.stringify(entry)}`);
       if (this.selectedToken === '0') {
         const callArgs = JSON.stringify([entry.orderId]);
         this.takeOrder(entry, callArgs);
@@ -357,7 +351,7 @@ export default {
       }
     },
     sellFromBuyList(entry) {
-      console.log(`==>selling: ${JSON.stringify(entry)}`);
+      // console.log(`==>selling: ${JSON.stringify(entry)}`);
       if (this.selectedToken === '0') {
         const callArgs = JSON.stringify([entry.orderId]);
         this.takeOrder(entry, callArgs);
@@ -386,22 +380,22 @@ export default {
         value = orderInfo.price * orderInfo.amount;
         value = new BigNumber(value.toString());
       }
-      console.log(`=> value: ${value}`);
+      // console.log(`=> value: ${value}`);
       this.$nebPay.call(this.currentContract, value, callFunction, callArgs, {
         listener: (data) => {
           if (
             JSON.stringify(data) === '"Error: Transaction rejected by user"'
           ) {
-            console.log('=> transaction rejected');
+            // console.log('=> transaction rejected');
             return;
           }
           if (data.txhash) {
-            const txhash = data.txhash;
-            console.log(`=> this transaction's hash: ${txhash}`);
+            // const txhash = data.txhash;
+            // console.log(`=> this transaction's hash: ${txhash}`);
             this.txData = data;
             this.checkTxDialog = true;
           } else {
-            console.log('=> transaction failed');
+            // console.log('=> transaction failed');
           }
         }
       });
@@ -425,7 +419,7 @@ export default {
       });
       const promises = Promise.all(pArray);
       promises.then((results) => {
-        console.log(`==>promiseall: ${JSON.stringify(results)}`);
+        // console.log(`==>promiseall: ${JSON.stringify(results)}`);
         const buyList = [];
         const sellList = [];
         for (let i = 0; i < results.length; i += 1) {
@@ -454,13 +448,13 @@ export default {
             } else if (tmp.type === '2') {
               sellList.push(entry);
             } else {
-              console.log('unexpected type');
+              // console.log('unexpected type');
             }
             entry.status = tmp.status;
             if (_type === '1') this.buyOrders = buyList;
             if (_type === '2') this.sellOrders = sellList;
           } else {
-            console.log('===> getOrdersDetail promises.then resultsis empty');
+            // console.log('===> getOrdersDetail promises.then resultsis empty');
           }
         }
       });
@@ -471,7 +465,7 @@ export default {
         function: 'getSellOrderIds',
         args: '[]'
       };
-      console.log(`====> exchange currentContract : ${this.currentContract}`);
+      // console.log(`====> exchange currentContract : ${this.currentContract}`);
       this.$neb.api
         .call(
           this.$account,
@@ -483,14 +477,12 @@ export default {
           call
         )
         .then((resp) => {
-          console.log(
-            `====> exchange getSellOrderIds : ${JSON.stringify(resp)}`
-          );
+          // console.log(`====> exchange getSellOrderIds : ${JSON.stringify(resp)}`);
           if (resp.result.length === 0) {
-            console.log('Exchange getSellOrderIds result is empty');
+            // console.log('Exchange getSellOrderIds result is empty');
           } else {
             const result = JSON.parse(resp.result);
-            console.log(`=> sellOrderids: ${result}`);
+            // console.log(`=> sellOrderids: ${result}`);
             this.sellOrderIds = result;
             this.getOrdersDetail(result, '2');
           }
@@ -517,14 +509,12 @@ export default {
           call
         )
         .then((resp) => {
-          console.log(
-            `====> exchange getBuyOrderIds : ${JSON.stringify(resp)}`
-          );
+          // console.log(`====> exchange getBuyOrderIds : ${JSON.stringify(resp)}`);
           if (resp.result.length === 0) {
-            console.log('Exchange getBuyOrderIds result is empty');
+            // console.log('Exchange getBuyOrderIds result is empty');
           } else {
             const result = JSON.parse(resp.result);
-            console.log(`=> buyOrderids: ${result}`);
+            // console.log(`=> buyOrderids: ${result}`);
             this.buyOrderIds = result;
             this.getOrdersDetail(result, '1');
           }
@@ -538,13 +528,13 @@ export default {
     }
   },
   beforeMount() {
-    console.log('=> exchange beforeMOunt');
+    // console.log('=> exchange beforeMOunt');
     this.getNRTPrice();
     this.getOrders();
   },
   mounted() {
     EventBus.$on('confirmTake', (orderInfo) => {
-      console.log(`=> event got confirmTake ${JSON.stringify(orderInfo)}`);
+      // console.log(`=> event got confirmTake ${JSON.stringify(orderInfo)}`);
       this.takeOrder(orderInfo);
     });
   }

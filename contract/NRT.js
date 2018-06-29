@@ -242,22 +242,28 @@ NRTContract.prototype = {
     }
 
     var config = this.getConfig();
-
-    var price = new BigNumber(config.current_price);
-    price = price.mul(config.inflation_rate);
-    config.current_price = price;
-
-    var balance = new BigNumber(config.balance);
-    config.balance = balance.plus(_value);
-
-    this._config = config;
-
+    // add to shareholder
     var allShareHolders = this._allShareHolders;
     allShareHolders.push(from);
     this._allShareHolders = allShareHolders;
-
+    // send the NRT share to from
     this.balances.set(from, 1);
     this.transferEvent(true, this._config.chairman, from, 1);
+    // deduct from chairman
+    var chairBalance = this.balances.get(config.chairman) || new BigNumber(0);
+    if (chairBalance.lt(2)) {
+      throw new Error('buyOneShare failed. No more NRT available.');
+    }
+    this.balances.set(config.chairman, chairBalance.sub(1));
+    // inflation kicks in
+    var price = new BigNumber(config.current_price);
+    price = price.mul(config.inflation_rate);
+    config.current_price = price;
+    // add money to contract's balance
+    var balance = new BigNumber(config.balance);
+    config.balance = balance.plus(_value);
+    //write back
+    this._config = config;
   },
 
   newOrder: function(_type, _price) {
@@ -532,7 +538,9 @@ NRTContract.prototype = {
       if (!result) {
         throw new Error(
           'distributeProfit failed at: ' +
-            i + ', ' + shareHolder +
+            i +
+            ', ' +
+            shareHolder +
             ' . Consider manually doing it for the rest'
         );
       }

@@ -58,7 +58,7 @@ export default {
         )
         .then((resp) => {
           if (resp.result.length === 0) {
-            console.log('Home getCurrentPrice result is empty');
+            // console.log('Home getCurrentPrice result is empty');
           } else {
             const nasBase = 10 ** 18;
             const result = JSON.parse(resp.result) / nasBase;
@@ -73,21 +73,21 @@ export default {
         });
     },
     buy() {
-      console.log('==> buy buy buy');
+      // console.log('==> buy buy buy');
       this.$nebPay.call(this.$contracts[0], this.price, 'buyOneShare', '[]', {
         listener: (data) => {
-          console.log(`==> data return: ${JSON.stringify(data)}`);
+          // console.log(`==> data return: ${JSON.stringify(data)}`);
           if (JSON.stringify(data) === 'Error: Transaction rejected by user') {
-            console.log('=> transaction rejected');
+            // console.log('=> transaction rejected');
             return;
           }
           if (data.txhash) {
-            const txhash = data.txhash;
-            console.log(`=> this transaction's hash: ${txhash}`);
+            // const txhash = data.txhash;
+            // console.log(`=> this transaction's hash: ${txhash}`);
             this.txData = data;
             this.checkTxDialog = true;
           } else {
-            console.log('=> transaction failed');
+            // console.log('=> transaction failed');
           }
         }
       });

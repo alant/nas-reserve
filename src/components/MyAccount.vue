@@ -106,6 +106,7 @@
 
 <script>
 import CheckTX from './CheckTX';
+import Util from '../util';
 
 export default {
   name: 'MyInfo',
@@ -124,17 +125,17 @@ export default {
   },
   methods: {
     getNRTBalance() {
-      console.log('=> myAccount getNRTBalance');
+      // console.log('=> myAccount getNRTBalance');
       this.getBalance(true);
     },
 
     getRMBBalance() {
-      console.log('=> myAccount getRmbBalance');
+      // console.log('=> myAccount getRmbBalance');
       this.getBalance(false);
     },
 
     getBalance(isNRT) {
-      console.log('=> myAccount getBalance');
+      // console.log('=> myAccount getBalance');
       const contractAddress = isNRT ? this.$contracts[0] : this.$contracts[1];
       const call = {
         function: 'balanceOf',
@@ -154,9 +155,9 @@ export default {
           // if (resp.execute_err.length > 0) {
           //   throw new Error(resp.execute_err);
           // }
-          console.log(`====> balanceOf : ${JSON.stringify(resp)}`);
+          // console.log(`====> balanceOf : ${JSON.stringify(resp)}`);
           // const result = JSON.parse(resp.result);
-          console.log(`${isNRT ? 'NRT' : 'RMB'} getBalance: ${resp.result}`);
+          // console.log(`${isNRT ? 'NRT' : 'RMB'} getBalance: ${resp.result}`);
           // if (!result) {
           //   throw new Error('访问合约API出错');
           // }
@@ -189,7 +190,7 @@ export default {
     },
 
     getMyOrders() {
-      console.log(`=> myAccount getMyOrders: ${this.$account}`);
+      // console.log(`=> myAccount getMyOrders: ${this.$account}`);
       const call = {
         function: 'getMyOrders',
         args: JSON.stringify([this.$account])
@@ -211,11 +212,9 @@ export default {
           call
         )
         .then((resp) => {
-          console.log(
-            `====> MyAccount NRT getMyOrders : ${JSON.stringify(resp)}`
-          );
+          // console.log(`====> MyAccount NRT getMyOrders : ${JSON.stringify(resp)}`);
           if (resp.result.length === 0) {
-            console.log('Exchange getBuyOrderIds result is empty');
+            // console.log('Exchange getBuyOrderIds result is empty');
           } else {
             const result = JSON.parse(resp.result);
             // console.log(`=> => my NRT orders:: ${result}`);
@@ -258,11 +257,9 @@ export default {
           call
         )
         .then((resp) => {
-          console.log(
-            `====> MyAccount RMB getMyOrders : ${JSON.stringify(resp)}`
-          );
+          // console.log(`====> MyAccount RMB getMyOrders : ${JSON.stringify(resp)}`);
           if (resp.result.length === 0) {
-            console.log('Exchange getBuyOrderIds result is empty');
+            // console.log('Exchange getBuyOrderIds result is empty');
           } else {
             const result = JSON.parse(resp.result);
             // console.log(`=> => my RMBnt orders:: ${result}`);
@@ -317,7 +314,7 @@ export default {
       ];
     },
     cancelOrder(entry) {
-      console.log(`canceling: ${JSON.stringify(entry)}`);
+      // console.log(`canceling: ${JSON.stringify(entry)}`);
       const contract =
         entry.coin === 'NRT' ? this.$contracts[0] : this.$contracts[1];
       const callArgs = JSON.stringify([entry.orderId]);
@@ -327,16 +324,16 @@ export default {
           if (
             JSON.stringify(data) === '"Error: Transaction rejected by user"'
           ) {
-            console.log('=> transaction rejected');
+            // console.log('=> transaction rejected');
             return;
           }
           if (data.txhash) {
-            const txhash = data.txhash;
-            console.log(`=> this transaction's hash: ${txhash}`);
+            // const txhash = data.txhash;
+            // console.log(`=> this transaction's hash: ${txhash}`);
             this.txData = data;
             this.checkTxDialog = true;
           } else {
-            console.log('=> transaction failed');
+            // console.log('=> transaction failed');
           }
         }
       });
@@ -344,6 +341,7 @@ export default {
   },
 
   beforeMount() {
+    Util.loadAccountAddress();
     this.getNRTBalance();
     this.getRMBBalance();
     this.getMyOrders();
