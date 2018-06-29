@@ -5,7 +5,7 @@
         <v-list-tile to="/buy">
           <v-list-tile-content>{{ $t('message.purchaseNRT') }}</v-list-tile-content>
         </v-list-tile>
-        <v-list-tile to="/exchange">
+        <v-list-tile to="/">
           <v-list-tile-content>{{ $t('message.exchange') }}</v-list-tile-content>
         </v-list-tile>
         <v-list-tile to="/myaccount">
