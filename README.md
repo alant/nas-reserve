@@ -1,4 +1,5 @@
 # nas-reserve decentralized reserve bank for stable coin on Nebulas
+Built on VUE.js and Nebulas blockchain
 
 ## Build Setup
 
